@@ -1,0 +1,311 @@
+# API của module moderation. Sửa spec trước, rồi `make generate`.
+openapi: 3.0.3
+info:
+  title: Moderation API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /moderation/queue:
+    get:
+      operationId: getQueue
+      summary: Content waiting for review (oldest first) and re-evaluation requests (priority)
+      responses:
+        "200":
+          description: The queue
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Queue' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /moderation/decisions:
+    post:
+      operationId: decide
+      summary: Approve or reject one or more held items. Rejecting needs a rule, also in bulk.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecideRequest' }
+      responses:
+        "200":
+          description: How many items were decided (items someone else just handled are skipped)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DecideResult' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /moderation/removals:
+    post:
+      operationId: removeContent
+      summary: Remove published content the filter missed. Counts as a confirmed violation and can be appealed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RemoveRequest' }
+      responses:
+        "204": { description: Removed; the author is notified }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /moderation/appeals/{appeal_id}/review:
+    post:
+      operationId: reviewAppeal
+      summary: Decide a re-evaluation request. Final. Not allowed for the moderator who made the original decision.
+      parameters:
+        - name: appeal_id
+          in: path
+          required: true
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewRequest' }
+      responses:
+        "204": { description: Decided; the author is notified }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /appeals:
+    post:
+      operationId: createAppeal
+      summary: Ask for one re-evaluation of a rejection, removal or auto-deletion, within 30 days
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AppealRequest' }
+      responses:
+        "201":
+          description: Submitted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Appeal' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/decisions:
+    get:
+      operationId: listMyDecisions
+      summary: Moderation decisions about your content, with any re-evaluation request
+      responses:
+        "200":
+          description: Decisions, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MyDecision' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /audit:
+    get:
+      operationId: listAudit
+      summary: The append-only audit trail of moderation actions. No content, pseudonymous users.
+      parameters:
+        - name: before
+          in: query
+          required: false
+          schema: { type: integer, format: int64 }
+        - name: filter
+          in: query
+          required: false
+          description: overturned (AI decisions a person overturned) or config (configuration changes)
+          schema: { type: string, enum: [overturned, config] }
+      responses:
+        "200":
+          description: A page, newest first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditPage' }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    ContentRef:
+      type: object
+      required: [type, id]
+      properties:
+        type: { type: string, enum: [post, comment] }
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+
+    Person:
+      type: object
+      required: [id, name, unit]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        name: { type: string }
+        unit: { type: string }
+
+    Sentence:
+      type: object
+      required: [start, end, top_label, score]
+      properties:
+        start: { type: integer }
+        end: { type: integer }
+        top_label: { type: string }
+        score: { type: number, format: double }
+
+    Screening:
+      type: object
+      required: [reason, label, model_version, sentences]
+      properties:
+        reason: { type: string, description: 'model | blocklist | language | outage' }
+        label: { type: string, description: 'clean | offensive | hate, empty when not scored' }
+        score: { type: number, format: double, nullable: true }
+        model_version: { type: string }
+        rule: { type: integer, nullable: true, description: Rule of the blocklist term, or 4 for offensive }
+        sentences:
+          type: array
+          items: { $ref: '#/components/schemas/Sentence' }
+
+    ContentItem:
+      type: object
+      required: [ref, post_id, post_title, title, body, channel_id, channel_name, author, status, screening, created_at]
+      properties:
+        ref: { $ref: '#/components/schemas/ContentRef' }
+        post_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        post_title: { type: string }
+        title: { type: string, description: Empty for comments }
+        body: { type: string }
+        channel_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        channel_name: { type: string }
+        author: { $ref: '#/components/schemas/Person' }
+        status: { type: string }
+        screening: { $ref: '#/components/schemas/Screening' }
+        author_strikes: { type: integer, description: The author's confirmed violations in the current window }
+        created_at: { type: string, format: date-time }
+
+    Decision:
+      type: object
+      required: [id, action, rule, created_at]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        action: { type: string, enum: [approve, reject, remove, auto_delete] }
+        rule: { type: integer, description: 0 for approvals }
+        moderator: { $ref: '#/components/schemas/Person' }
+        appeal_deadline: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    Appeal:
+      type: object
+      required: [id, decision_id, reason, status, created_at]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        decision_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        reason: { type: string }
+        status: { type: string, enum: [pending, accepted, declined] }
+        created_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time, nullable: true }
+
+    QueueAppeal:
+      type: object
+      required: [appeal, decision, item, can_review]
+      properties:
+        appeal: { $ref: '#/components/schemas/Appeal' }
+        decision: { $ref: '#/components/schemas/Decision' }
+        item: { $ref: '#/components/schemas/ContentItem' }
+        can_review: { type: boolean, description: False for the moderator who made the original decision }
+
+    Queue:
+      type: object
+      required: [items, appeals]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ContentItem' }
+        appeals:
+          type: array
+          items: { $ref: '#/components/schemas/QueueAppeal' }
+
+    DecideRequest:
+      type: object
+      required: [items, action]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items: { $ref: '#/components/schemas/ContentRef' }
+        action: { type: string, enum: [approve, reject] }
+        rule: { type: integer, minimum: 1, maximum: 7 }
+
+    DecideResult:
+      type: object
+      required: [decided]
+      properties:
+        decided: { type: integer }
+
+    RemoveRequest:
+      type: object
+      required: [item, rule]
+      properties:
+        item: { $ref: '#/components/schemas/ContentRef' }
+        rule: { type: integer, minimum: 1, maximum: 7 }
+
+    ReviewRequest:
+      type: object
+      required: [accept]
+      properties:
+        accept: { type: boolean }
+
+    AppealRequest:
+      type: object
+      required: [decision_id, reason]
+      properties:
+        decision_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        reason: { type: string, maxLength: 4000 }
+
+    MyDecision:
+      type: object
+      required: [decision, content_type, channel_name, title, body, can_appeal]
+      properties:
+        decision: { $ref: '#/components/schemas/Decision' }
+        content_type: { type: string, enum: [post, comment] }
+        post_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        channel_name: { type: string }
+        title: { type: string, description: The post title (or the parent post's title for a comment) }
+        body: { type: string, description: Empty once the content has been purged }
+        appeal: { $ref: '#/components/schemas/Appeal' }
+        can_appeal: { type: boolean }
+
+    AuditEntry:
+      type: object
+      required: [id, action, subject, outcome, overturned_ai, created_at]
+      properties:
+        id: { type: integer, format: int64 }
+        action: { type: string }
+        moderator: { type: string, nullable: true, description: Moderator name; empty for the automatic filter }
+        subject: { type: string, description: Pseudonymous user ID }
+        content_type: { type: string }
+        ai_label: { type: string }
+        ai_score: { type: number, format: double, nullable: true }
+        model_version: { type: string }
+        rule: { type: integer, nullable: true }
+        outcome: { type: string }
+        overturned_ai: { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    AuditPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AuditEntry' }
+        next_before: { type: integer, format: int64 }

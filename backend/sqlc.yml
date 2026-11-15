@@ -1,0 +1,101 @@
+version: "2"
+
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        go_type:
+          import: "github.com/google/uuid"
+          type: "UUID"
+      - db_type: "uuid"
+        nullable: true
+        go_type:
+          import: "github.com/google/uuid"
+          type: "UUID"
+          pointer: true
+
+      - db_type: "timestamptz"
+        go_type:
+          import: "time"
+          type: "Time"
+      - db_type: "timestamptz"
+        nullable: true
+        go_type:
+          import: "time"
+          type: "Time"
+          pointer: true
+
+      # jsonb giữ nguyên bytes, repository tự decode
+      - db_type: "jsonb"
+        go_type:
+          import: "encoding/json"
+          type: "RawMessage"
+      - db_type: "jsonb"
+        nullable: true
+        go_type:
+          import: "encoding/json"
+          type: "RawMessage"
+
+sql:
+  # Schema lấy từ migrations/ (sqlc bỏ qua phần -- +goose Down). Mỗi module một block,
+  # sinh vào <module>/repository/db.
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/identity/repository/queries"
+    gen:
+      go: &go_defaults
+        package: "db"
+        out: "internal/identity/repository/db"
+        sql_package: "pgx/v5"
+        emit_interface: true
+        # [] thay vì nil với param dạng :many
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/content/repository/queries"
+    gen:
+      go:
+        <<: *go_defaults
+        out: "internal/content/repository/db"
+
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/screening/repository/queries"
+    gen:
+      go:
+        <<: *go_defaults
+        out: "internal/screening/repository/db"
+
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/moderation/repository/queries"
+    gen:
+      go:
+        <<: *go_defaults
+        out: "internal/moderation/repository/db"
+
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/penalties/repository/queries"
+    gen:
+      go:
+        <<: *go_defaults
+        out: "internal/penalties/repository/db"
+
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/notifications/repository/queries"
+    gen:
+      go:
+        <<: *go_defaults
+        out: "internal/notifications/repository/db"
+
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/administration/repository/queries"
+    gen:
+      go:
+        <<: *go_defaults
+        out: "internal/administration/repository/db"

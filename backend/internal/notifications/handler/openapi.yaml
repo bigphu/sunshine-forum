@@ -1,0 +1,70 @@
+# API của module notifications. Sửa spec trước, rồi `make generate`.
+#
+# Luồng thời gian thực GET /api/v1/notifications/stream (text/event-stream) viết tay ở
+# handler/stream.go, không nằm trong spec: strict server không flush từng event.
+# Mỗi khi có thông báo mới, server gửi "event: notification" (data rỗng); client tải lại
+# GET /notifications. Cứ 25 giây có một dòng chú thích để giữ kết nối.
+openapi: 3.0.3
+info:
+  title: Notifications API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /notifications:
+    get:
+      operationId: listNotifications
+      summary: Your 50 most recent notifications and the unread count
+      responses:
+        "200":
+          description: Inbox
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Inbox' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /notifications/read:
+    post:
+      operationId: markNotificationsRead
+      summary: Mark every notification as read
+      responses:
+        "204": { description: Marked }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    Notification:
+      type: object
+      required: [id, kind, body, link, created_at]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        kind: { type: string, enum: [moderation, appeal, read_only, comment, reply, announcement] }
+        body: { type: string }
+        link: { type: string, description: In-app path to open }
+        read_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    Inbox:
+      type: object
+      required: [items, unread]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Notification' }
+        unread: { type: integer }

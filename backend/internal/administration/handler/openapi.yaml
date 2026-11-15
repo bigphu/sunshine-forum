@@ -1,0 +1,172 @@
+# API của module administration. Sửa spec trước, rồi `make generate`.
+openapi: 3.0.3
+info:
+  title: Administration API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /admin/analytics:
+    get:
+      operationId: getAnalytics
+      summary: Filter figures for the last days (flag volume, accuracy, appeals, penalties)
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema: { type: integer, enum: [7, 30, 90], default: 30 }
+      responses:
+        "200":
+          description: Figures
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Analytics' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/exports:
+    get:
+      operationId: listExports
+      summary: Retraining exports and how many corrections are eligible now
+      responses:
+        "200":
+          description: Exports
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExportList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createExport
+      summary: Export finalized corrections (no user or post IDs; phone numbers and emails replaced)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExportRequest' }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Export' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /admin/exports/{export_id}:
+    parameters:
+      - name: export_id
+        in: path
+        required: true
+        schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+    get:
+      operationId: downloadExport
+      summary: Download an export as JSON Lines
+      responses:
+        "200":
+          description: One JSON object per line (text, label, rule, ai_score, model_version)
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            application/x-ndjson:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: deleteExport
+      summary: Delete an export once the model team has used it
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    DayCount:
+      type: object
+      required: [day, count]
+      properties:
+        day: { type: string, format: date }
+        count: { type: integer, format: int64 }
+
+    Analytics:
+      type: object
+      required: [days, checked, flagged, by_label, overturned, approved, rejected, removed, auto_deleted,
+        appeals_pending, appeals_accepted, appeals_declined, active_strikes, read_only_accounts, flagged_by_day]
+      properties:
+        days: { type: integer }
+        checked: { type: integer, format: int64, description: Posts and comments screened in the period }
+        flagged: { type: integer, format: int64, description: Held by the filter, whatever was decided later }
+        by_label:
+          type: object
+          required: [hate, offensive, blocklist, language]
+          properties:
+            hate: { type: integer, format: int64 }
+            offensive: { type: integer, format: int64 }
+            blocklist: { type: integer, format: int64 }
+            language: { type: integer, format: int64 }
+        agreement:
+          type: number
+          format: double
+          nullable: true
+          description: Share of manager decisions on model-flagged content that agreed with the AI (0 to 1)
+        overturned:
+          type: object
+          required: [held_wrong, missed, deleted_wrong]
+          properties:
+            held_wrong: { type: integer, format: int64, description: Held items a manager approved }
+            missed: { type: integer, format: int64, description: Published items a manager removed }
+            deleted_wrong: { type: integer, format: int64, description: Auto-deletions restored on appeal }
+        approved: { type: integer, format: int64 }
+        rejected: { type: integer, format: int64 }
+        removed: { type: integer, format: int64 }
+        auto_deleted: { type: integer, format: int64 }
+        appeals_pending: { type: integer, format: int64 }
+        appeals_accepted: { type: integer, format: int64 }
+        appeals_declined: { type: integer, format: int64 }
+        active_strikes: { type: integer, format: int64 }
+        read_only_accounts: { type: integer, format: int64 }
+        flagged_by_day:
+          type: array
+          description: One entry per day of the period, oldest first (Vietnam time)
+          items: { $ref: '#/components/schemas/DayCount' }
+
+    ExportRequest:
+      type: object
+      required: [purpose]
+      properties:
+        purpose: { type: string, enum: [training, evaluation] }
+
+    Export:
+      type: object
+      required: [id, item_count, purpose, period_from, period_to, delete_after, created_at]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        item_count: { type: integer }
+        purpose: { type: string, enum: [training, evaluation] }
+        period_from: { type: string, format: date-time }
+        period_to: { type: string, format: date-time }
+        delete_after: { type: string, format: date-time }
+        created_at: { type: string, format: date-time }
+
+    ExportList:
+      type: object
+      required: [eligible, period_from, period_to, exports]
+      properties:
+        eligible: { type: integer }
+        period_from: { type: string, format: date-time }
+        period_to: { type: string, format: date-time }
+        exports:
+          type: array
+          items: { $ref: '#/components/schemas/Export' }

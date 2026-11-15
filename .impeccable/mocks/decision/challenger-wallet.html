@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Hàng chờ kiểm duyệt</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#14284B;--navy2:#0D1C36;--red:#C8202F;--carbon:#4B3A8C;--ground:#E9ECF2;--ink:#121A28;--soft:#526075;--line:#C7CEDA}
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font:400 15px/1.5 Archivo,sans-serif;color:var(--ink);background:var(--ground);display:grid;grid-template-columns:204px 340px 1fr}
+.rail{background:var(--navy);color:#DDE4F0;padding:22px 12px;display:flex;flex-direction:column;gap:3px}
+.brand{font-weight:800;font-size:18px;line-height:1.2;color:#fff;padding:0 10px 22px}
+.rail a{display:flex;justify-content:space-between;padding:10px;border-radius:4px;font-weight:500}
+.rail a.on{background:#fff;color:var(--navy);font-weight:700}
+.rail .foot{margin-top:auto;padding:10px;font-size:13px;color:#B9C4D8}
+.queue{background:#DFE3EB;border-right:1px solid var(--line)}
+.queue h1{font-size:24px;line-height:1.2;font-weight:800;padding:20px 16px 12px}
+.item{padding:13px 16px;border-top:1px solid var(--line);color:var(--soft)}
+.item h3{font-size:15px;font-weight:600;line-height:1.35}
+.item small{font-size:13px}
+.num{font:700 13px "Roboto Mono",monospace;color:var(--carbon)}
+.item.on{background:#fff;color:var(--ink);box-shadow:0 2px 12px rgba(20,40,75,.18)}
+.item.on h3{font-weight:800}
+.main{padding:24px 30px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.sample{align-self:flex-end;font-size:13px;font-weight:600;color:#5D4300;background:#F4E4A9;padding:3px 9px;border-radius:3px}
+.coupon{background:#fff;flex:1;display:grid;grid-template-columns:1fr 170px;box-shadow:0 3px 18px rgba(20,40,75,.14);min-height:0}
+.body{padding:0 28px 22px;display:flex;flex-direction:column;min-width:0}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);margin:0 -28px 18px;background:var(--navy);color:#C9D3E5;font-size:13px;font-weight:600}
+.tabs span{padding:9px 12px;border-right:1px solid #2A4068}
+.tabs .used{color:#fff}.tabs .now{background:#fff;color:var(--navy);font-weight:800}
+h2{font-size:27px;line-height:1.2;font-weight:800;max-width:640px}
+.sub{color:var(--soft);margin:4px 0 16px}
+.fields{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-bottom:16px}
+.fields div{padding:7px 10px;border-right:1px solid var(--line)}
+.fields div:last-child{border:0}
+.fields small{display:block;font-size:12px;color:var(--soft);font-weight:600}
+.fields b{font:700 18px "Roboto Mono",monospace;color:var(--carbon)}
+.lab{font-weight:700;margin-bottom:5px}
+.prior{color:var(--soft);padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.post{font-size:18px;line-height:1.6;max-width:68ch}
+.hid{display:inline-block;width:300px;height:25px;vertical-align:-6px;background:var(--carbon);border-radius:2px}
+.reveal{align-self:flex-start;margin-top:10px;border:1px solid var(--navy);background:none;color:var(--navy);padding:7px 12px;border-radius:4px;font:600 14px Archivo,sans-serif}
+.act{margin-top:auto;display:flex;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.act select{flex:1;height:44px;border:1px solid var(--navy);padding:0 10px;font:inherit;background:#fff}
+.act button{height:44px;padding:0 20px;border-radius:4px;border:1px solid var(--navy);font:700 15px Archivo,sans-serif}
+.no{background:var(--red);border-color:var(--red)!important;color:#fff}.ok{background:var(--navy);color:#fff}
+.stub{border-left:2px dashed var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:18px;position:relative}
+.stub .big{font:700 26px/1.1 "Roboto Mono",monospace;color:var(--carbon)}
+.stub small{display:block;color:var(--soft);font-size:13px;font-weight:600}
+.stamp{margin-top:auto;border:3px solid var(--navy);color:var(--navy);padding:9px;text-align:center;font-weight:800;line-height:1.2;transform:rotate(-5deg);opacity:.5}
+</style></head><body>
+<nav class="rail"><div class="brand">Sunshine Apartment</div><a class="on">Hàng chờ <b>6</b></a><a>Xem xét lại <b>2</b></a><a>Báo cáo <b>3</b></a><a>Đã xử lý</a><a>Về diễn đàn</a><div class="foot">Quản lý · Tài khoản mẫu</div></nav>
+<aside class="queue"><h1>Hàng chờ kiểm duyệt</h1>
+<div class="item on"><span class="num">0142</span><h3>Tiếng ồn sửa chữa sau 22 giờ</h3><small>Thảo luận chung · 12 phút trước</small></div>
+<div class="item"><span class="num">0141</span><h3>Ai để xe chắn lối hầm B1?</h3><small>Thảo luận chung · 38 phút trước</small></div>
+<div class="item"><span class="num">0140</span><h3>Thang máy tòa A lại hỏng</h3><small>Bảo trì · 1 giờ trước</small></div>
+<div class="item"><span class="num">0139</span><h3>Bán tủ lạnh cũ giá tốt</h3><small>Marketplace · 3 giờ trước</small></div>
+<div class="item"><span class="num">0138</span><h3>Góp ý về phí gửi xe</h3><small>Thông báo · 5 giờ trước</small></div>
+</aside>
+<main class="main"><span class="sample">Dữ liệu và điểm số mẫu</span>
+<article class="coupon"><div class="body">
+<div class="tabs"><span class="used">Đã gửi</span><span class="used">AI gắn cờ</span><span class="now">Quản lý xem xét</span><span>Thông báo</span><span>Quyết định cuối</span></div>
+<h2>Tiếng ồn sửa chữa sau 22 giờ</h2><p class="sub">Bình luận của Cư dân A trong kênh Thảo luận chung</p>
+<div class="fields"><div><small>hate</small><b>0,91</b></div><div><small>offensive</small><b>0,18</b></div><div><small>Vi phạm, 90 ngày</small><b>0</b></div><div><small>Báo cáo</small><b>0</b></div></div>
+<p class="lab">Bình luận trước đó</p><p class="prior">Mấy hôm nay căn hộ phía trên khoan tường đến gần 23 giờ. Ban quản lý có thể nhắc giúp không ạ?</p>
+<p class="lab">Nội dung bị gắn cờ</p><p class="post">Tôi đã nhắc hai lần rồi mà vẫn vậy. <span class="hid" aria-label="Nội dung đang được che"></span> Nếu tối nay còn ồn, tôi sẽ báo ban quản lý.</p>
+<button class="reveal">Hiện nội dung bị che</button>
+<div class="act"><select aria-label="Quy tắc"><option>Chọn quy tắc 1, 2 hoặc 3 trước khi từ chối</option></select><button class="no">Từ chối</button><button class="ok">Cho phép đăng</button></div>
+</div>
+<aside class="stub"><div><small>Hồ sơ</small><div class="big">0142</div></div><div><small>Đã nhận</small><b>06/11 · 21:36</b></div><div><small>Còn lại</small><b>3 bước</b></div><div class="stamp">CHỜ<br>QUYẾT ĐỊNH</div></aside>
+</article></main>
+</body></html>

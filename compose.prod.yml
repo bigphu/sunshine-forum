@@ -1,0 +1,100 @@
+# Stack production trên một máy (VPS dùng chung với StoreIt, SYSTEM_DESIGN "Hosting").
+# Project, mạng, cổng và Postgres riêng; host nginx (deploy/nginx) giữ TLS và trỏ vào web.
+#   docker compose -f compose.prod.yml --env-file .env up -d
+name: sunshine-forum
+
+x-go-env: &go-env
+  TZ: UTC
+  PGTZ: UTC
+  DB_URL: postgres://${APP_DB_USER:-sunshine}@postgres:5432/${APP_DB_NAME:-sunshine}?sslmode=disable
+  PGPASSWORD_FILE: /run/secrets/pg_password
+  PRIVACY_ENC_KEY_FILE: /run/secrets/privacy_enc_key
+  PRIVACY_HMAC_KEY_FILE: /run/secrets/privacy_hmac_key
+  IDENTITY_APP_URL: ${APP_URL:-https://sunshine-forum.bigphu.io.vn}
+  IDENTITY_COOKIE_SECURE: "true"
+  ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+  # Mạng Docker mà host nginx đi vào: để rate limit thấy đúng IP của cư dân
+  HTTP_TRUSTED_PROXIES: 172.31.0.0/24
+
+x-backend: &backend
+  image: ${REGISTRY:-sunshine-forum}/backend:${TAG:-latest}
+  secrets: [pg_password, privacy_enc_key, privacy_hmac_key]
+  restart: unless-stopped
+  networks: [forum]
+
+services:
+  postgres:
+    image: mirror.gcr.io/library/postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME:-sunshine}
+      POSTGRES_USER: ${APP_DB_USER:-sunshine}
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+    secrets: [pg_password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USER:-sunshine} -d ${APP_DB_NAME:-sunshine}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [forum]
+
+  migrate:
+    <<: *backend
+    entrypoint: ["/app/migrate"]
+    environment: *go-env
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  app:
+    <<: *backend
+    environment:
+      <<: *go-env
+      HTTP_ADDR: ":8080"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  worker:
+    <<: *backend
+    entrypoint: ["/app/worker"]
+    environment:
+      <<: *go-env
+      # Nhà cung cấp chặn SMTP ra ngoài: thư đi qua API của Resend
+      MAIL_TRANSPORT: resend
+      MAIL_FROM: ${MAIL_FROM:-Sunshine Apartment <no-reply@bigphu.io.vn>}
+      MAIL_RESEND_API_KEY_FILE: /run/secrets/resend_api_key
+    secrets: [pg_password, privacy_enc_key, privacy_hmac_key, resend_api_key]
+    stop_grace_period: 30s
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    image: ${REGISTRY:-sunshine-forum}/web:${TAG:-latest}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8092}:8080"
+    depends_on: [app]
+    restart: unless-stopped
+    networks: [forum]
+
+secrets:
+  pg_password:
+    file: ./deploy/secrets/pg_password.txt
+  privacy_enc_key:
+    file: ./deploy/secrets/privacy_enc_key.txt
+  privacy_hmac_key:
+    file: ./deploy/secrets/privacy_hmac_key.txt
+  resend_api_key:
+    file: ./deploy/secrets/resend_api_key.txt
+
+networks:
+  # StoreIt dùng 172.30.0.0/24
+  forum:
+    ipam:
+      config:
+        - subnet: 172.31.0.0/24
+
+volumes:
+  pgdata:

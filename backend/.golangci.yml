@@ -1,0 +1,243 @@
+# Chạy bằng `make lint`. depguard giữ ranh giới giữa các module và giữa các tầng.
+#
+# Cách đọc: import bị chặn nếu khớp deny, trừ khi khớp một allow dài hơn.
+# Vd deny "sunshine/internal/" + allow "sunshine/internal/x/contract" = chỉ được import contract.
+# Rule nào có deny kèm allow phải để list-mode: lax, không thì deny luôn thắng.
+# Một import phải qua hết mọi rule khớp với file.
+#
+# Thêm module: thêm rule <module>-boundary và thêm <module>/contract vào allow của các module khác.
+# Package dùng chung không thuộc module (privacy, vntext, dbmigrate) không được import module.
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - depguard
+
+  settings:
+    depguard:
+      rules:
+        # --- Package dùng chung: không biết module nghiệp vụ ---
+        shared:
+          list-mode: lax
+          files: ["**/internal/privacy/**", "**/internal/vntext/**", "**/internal/dbmigrate/**"]
+          deny:
+            - pkg: sunshine/internal/identity
+              desc: package dùng chung không được import module nghiệp vụ
+            - pkg: sunshine/internal/content
+              desc: package dùng chung không được import module nghiệp vụ
+            - pkg: sunshine/internal/screening
+              desc: package dùng chung không được import module nghiệp vụ
+            - pkg: sunshine/internal/moderation
+              desc: package dùng chung không được import module nghiệp vụ
+            - pkg: sunshine/internal/penalties
+              desc: package dùng chung không được import module nghiệp vụ
+            - pkg: sunshine/internal/notifications
+              desc: package dùng chung không được import module nghiệp vụ
+            - pkg: sunshine/internal/administration
+              desc: package dùng chung không được import module nghiệp vụ
+
+        # --- Giữa các module: chỉ qua contract ---
+        identity-boundary:
+          list-mode: lax
+          files: ["**/internal/identity/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/identity
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/content/contract
+            - sunshine/internal/screening/contract
+            - sunshine/internal/moderation/contract
+            - sunshine/internal/penalties/contract
+            - sunshine/internal/notifications/contract
+            - sunshine/internal/administration/contract
+
+        content-boundary:
+          list-mode: lax
+          files: ["**/internal/content/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/content
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/identity/contract
+            - sunshine/internal/screening/contract
+            - sunshine/internal/moderation/contract
+            - sunshine/internal/penalties/contract
+            - sunshine/internal/notifications/contract
+            - sunshine/internal/administration/contract
+
+        screening-boundary:
+          list-mode: lax
+          files: ["**/internal/screening/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/screening
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/identity/contract
+            - sunshine/internal/content/contract
+            - sunshine/internal/moderation/contract
+            - sunshine/internal/penalties/contract
+            - sunshine/internal/notifications/contract
+            - sunshine/internal/administration/contract
+
+        moderation-boundary:
+          list-mode: lax
+          files: ["**/internal/moderation/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/moderation
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/identity/contract
+            - sunshine/internal/content/contract
+            - sunshine/internal/screening/contract
+            - sunshine/internal/penalties/contract
+            - sunshine/internal/notifications/contract
+            - sunshine/internal/administration/contract
+
+        penalties-boundary:
+          list-mode: lax
+          files: ["**/internal/penalties/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/penalties
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/identity/contract
+            - sunshine/internal/content/contract
+            - sunshine/internal/screening/contract
+            - sunshine/internal/moderation/contract
+            - sunshine/internal/notifications/contract
+            - sunshine/internal/administration/contract
+
+        notifications-boundary:
+          list-mode: lax
+          files: ["**/internal/notifications/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/notifications
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/identity/contract
+            - sunshine/internal/content/contract
+            - sunshine/internal/screening/contract
+            - sunshine/internal/moderation/contract
+            - sunshine/internal/penalties/contract
+            - sunshine/internal/administration/contract
+
+        administration-boundary:
+          list-mode: lax
+          files: ["**/internal/administration/**"]
+          deny:
+            - pkg: sunshine/internal/
+              desc: module khác chỉ được dùng qua <module>/contract
+          allow:
+            - sunshine/internal/administration
+            - sunshine/internal/privacy
+            - sunshine/internal/vntext
+            - sunshine/internal/testdb
+            - sunshine/internal/identity/contract
+            - sunshine/internal/content/contract
+            - sunshine/internal/screening/contract
+            - sunshine/internal/moderation/contract
+            - sunshine/internal/penalties/contract
+            - sunshine/internal/notifications/contract
+
+        # --- Các tầng trong một module ---
+        # contract: chỉ dữ liệu, không phụ thuộc gì ngoài stdlib, uuid và errs
+        contract:
+          list-mode: strict
+          files: ["**/internal/*/contract/**"]
+          allow:
+            - $gostd
+            - github.com/google/uuid
+            - github.com/bigphu/goat/errs
+
+        # domain: quy tắc thuần, không HTTP, SQL hay job
+        domain:
+          list-mode: lax
+          files: ["**/internal/*/domain/**"]
+          deny:
+            - pkg: net/http
+              desc: domain không biết HTTP
+            - pkg: github.com/go-chi
+              desc: domain không biết HTTP
+            - pkg: github.com/jackc/pgx
+              desc: domain không biết SQL, dùng repository interface
+            - pkg: github.com/riverqueue
+              desc: domain không biết job
+
+        # service: không HTTP, pgx, River. Gọi repository qua interface trong domain
+        service:
+          list-mode: lax
+          files: ["**/internal/*/service/**"]
+          deny:
+            - pkg: github.com/go-chi
+              desc: service không biết HTTP
+            - pkg: net/http
+              desc: service không biết HTTP
+            - pkg: github.com/jackc/pgx
+              desc: SQL và transaction thuộc repository
+            - pkg: github.com/riverqueue
+              desc: job và event đi qua repository
+            - pkg: github.com/bigphu/goat/web
+              desc: service không biết HTTP
+            - pkg: github.com/bigphu/goat/database
+              desc: transaction thuộc repository
+            - pkg: github.com/bigphu/goat/server
+              desc: service không biết HTTP
+            - pkg: github.com/bigphu/goat/middleware
+              desc: service không biết HTTP
+
+        # repository: nơi duy nhất dùng repository/db (sqlc), không biết HTTP
+        repository:
+          list-mode: lax
+          files: ["**/internal/*/repository/**"]
+          deny:
+            - pkg: github.com/go-chi
+              desc: repository không biết HTTP
+            - pkg: net/http
+              desc: repository không biết HTTP
+            - pkg: github.com/bigphu/goat/web
+              desc: repository không biết HTTP
+
+        # handler: chỉ gọi service, không đụng DB
+        handler:
+          list-mode: lax
+          files: ["**/internal/*/handler/**"]
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: handler không truy cập DB
+            - pkg: github.com/bigphu/goat/database
+              desc: handler không truy cập DB
+
+  exclusions:
+    generated: lax
+    paths:
+      - '.*\.gen\.go$'
+      - "internal/.*/repository/db/"
+
+formatters:
+  enable:
+    - gofmt

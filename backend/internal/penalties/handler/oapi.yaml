@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/v2.8.0/configuration-schema.json
+# Config cho oapi-codegen, chạy qua //go:generate trong handler.go
+package: api
+output: api/api.gen.go
+generate:
+  models: true
+  chi-server: true
+  strict-server: true
+  # GetSwagger() cho web.ValidateRequests (validate request theo spec)
+  embedded-spec: true
+# Schema dùng chung (lỗi, ID) nằm ở package apicommon của goat
+import-mapping:
+  ../../../api/common.yaml: github.com/bigphu/goat/web/apicommon

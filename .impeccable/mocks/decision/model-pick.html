@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Hàng chờ kiểm duyệt</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#16324F;--red:#C8102E;--paper:#F5F6F2;--white:#FFFFFF;--ink:#1A2430;--soft:#526070;--line:#D3D8D8}
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font:400 15px/1.5 "Be Vietnam Pro",sans-serif;color:var(--ink);background:var(--paper);display:grid;grid-template-rows:60px 1fr}
+header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:26px;padding:0 26px}
+header strong{font-size:18px;margin-right:18px}
+header a{color:#C9D6E2;font-weight:500}
+header a.on{color:#fff;font-weight:700;border-bottom:3px solid #fff;padding:17px 0 14px}
+header span{margin-left:auto;font-size:14px;color:#C9D6E2}
+.work{display:grid;grid-template-columns:330px 1fr;min-height:0}
+.queue{border-right:1px solid var(--line);background:#ECEEE9}
+.queue h1{font-size:22px;padding:18px 18px 12px}
+.item{padding:13px 18px;border-top:1px solid var(--line)}
+.item b{display:block;font-weight:600}
+.item small{color:var(--soft);font-size:13px}
+.item.on{background:var(--white);font-weight:600}
+.case{padding:24px 48px;display:grid;grid-template-columns:1fr 260px;gap:40px;min-height:0}
+.letter{background:var(--white);border:1px solid var(--line);padding:30px 42px;position:relative;font-family:"Source Serif 4",serif}
+.meta{display:flex;justify-content:space-between;font:500 14px "Be Vietnam Pro",sans-serif;color:var(--soft)}
+.letter h2{font-size:27px;text-align:center;margin:24px 0 18px;font-weight:700;line-height:1.25}
+.letter p{font-size:18px;line-height:1.65;max-width:68ch}
+.letter .prior{font-size:16px;color:var(--soft);padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.hid{display:inline-block;width:270px;height:18px;background:var(--ink);vertical-align:-3px}
+.reveal{margin-top:12px;font:600 14px "Be Vietnam Pro",sans-serif;background:none;border:1px solid var(--navy);color:var(--navy);border-radius:5px;padding:7px 12px}
+.seal{position:absolute;right:48px;bottom:112px;width:132px;height:132px;border:4px solid var(--red);border-radius:50%;color:var(--red);display:grid;place-items:center;text-align:center;font:700 14px/1.25 "Be Vietnam Pro",sans-serif;transform:rotate(-8deg);opacity:.32}
+.actions{position:absolute;left:42px;right:42px;bottom:26px;display:flex;gap:10px;font-family:"Be Vietnam Pro",sans-serif}
+.actions select{flex:1;height:42px;padding:0 10px;border:1px solid var(--navy);background:#fff}
+.actions button{height:42px;padding:0 18px;border-radius:5px;font:700 15px "Be Vietnam Pro",sans-serif;border:1px solid var(--navy);background:var(--navy);color:#fff}
+.actions .no{background:var(--red);border-color:var(--red)}
+aside h3{font-size:15px;margin-bottom:6px}
+aside section{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+aside p{font-size:14px;color:var(--soft)}
+.sample{display:inline-block;font-size:13px;font-weight:600;background:#E7ECF2;color:var(--navy);padding:3px 9px;border-radius:4px}
+</style></head><body>
+<header><strong>Sunshine Apartment</strong><a class="on">Hàng chờ (6)</a><a>Xem xét lại (2)</a><a>Báo cáo (3)</a><a>Đã xử lý</a><span>Quản lý · Tài khoản mẫu</span></header>
+<div class="work">
+<nav class="queue"><h1>Hàng chờ kiểm duyệt</h1>
+<div class="item on"><b>Tiếng ồn sửa chữa sau 22 giờ</b><small>Thảo luận chung · 12 phút trước</small></div>
+<div class="item"><b>Ai để xe chắn lối hầm B1?</b><small>Thảo luận chung · 38 phút trước</small></div>
+<div class="item"><b>Thang máy tòa A lại hỏng</b><small>Bảo trì · 1 giờ trước</small></div>
+<div class="item"><b>Bán tủ lạnh cũ giá tốt</b><small>Marketplace · 3 giờ trước</small></div>
+<div class="item"><b>Góp ý về phí gửi xe</b><small>Thông báo · 5 giờ trước</small></div>
+</nav>
+<main class="case">
+<article class="letter">
+<div class="meta"><span>Hồ sơ số 0142 · Mẫu</span><span>Ngày 06 tháng 11</span></div>
+<h2>Xem xét bình luận trong kênh Thảo luận chung</h2>
+<p class="prior">Mấy hôm nay căn hộ phía trên khoan tường đến gần 23 giờ. Ban quản lý có thể nhắc giúp không ạ?</p>
+<p>Tôi đã nhắc hai lần rồi mà vẫn vậy. <span class="hid" aria-label="Nội dung đang được che"></span> Nếu tối nay còn ồn, tôi sẽ báo ban quản lý.</p>
+<button class="reveal">Hiện nội dung bị che</button>
+<div class="seal">CHỜ<br>QUYẾT ĐỊNH</div>
+<div class="actions"><select><option>Chọn quy tắc trước khi từ chối</option></select><button class="no">Từ chối</button><button>Cho phép đăng</button></div>
+</article>
+<aside>
+<section><span class="sample">Dữ liệu và điểm số mẫu</span></section>
+<section><h3>Vì sao AI gắn cờ</h3><p>hate 0,91 · offensive 0,18. Cần quản lý chọn quy tắc 1, 2 hoặc 3.</p></section>
+<section><h3>Người viết</h3><p>Cư dân A. 0 vi phạm trong 90 ngày.</p></section>
+<section><h3>Trình tự</h3><p>Đã gửi → AI gắn cờ → Quản lý xem xét</p></section>
+</aside>
+</main>
+</div>
+</body></html>

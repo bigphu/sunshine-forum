@@ -1,0 +1,536 @@
+<title>Sunshine Use Flows</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one reading column; each flow is a four-lane swimlane (Resident, System, Manager, Admin) read top to bottom. */
+:root{--bg:#FFFFFF;--fg:#0E1116;--muted:#5A6472;--line:#E2E5EA;--lane:#F6F7F9;--sys:#EDEFF2;--edge:#7A8699;--todo:#B45309;--brand:#FF9A1A;--card:#FFFFFF;
+--f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--fg:#F3F5F8;--muted:#9AA3B1;--line:#2A303B;--lane:#141820;--sys:#222833;--edge:#6B7586;--todo:#FFC24D;--card:#171B22;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1116;--fg:#F3F5F8;--muted:#9AA3B1;--line:#2A303B;--lane:#141820;--sys:#222833;--edge:#6B7586;--todo:#FFC24D;--card:#171B22;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.top{display:grid;gap:14px;max-width:68ch}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:.8125rem;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.eyebrow svg{width:13px;height:18px;fill:var(--brand)}
+h1{font-size:clamp(2rem,5vw,2.75rem);line-height:1.1;font-weight:800;letter-spacing:-.025em}
+.top p{margin:0;color:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;margin:26px 0 0;padding:14px 16px;border-radius:14px;background:var(--lane);font-size:.875rem}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:28px;height:18px;border-radius:5px;background:var(--card);border:1.5px solid var(--fg)}
+.sw.todo{border:2px dashed var(--todo)}.sw.sys{background:var(--sys);border:0;border-radius:8px}.sw.prop{border:1.5px dotted var(--muted)}
+.inv{margin-top:40px}
+.inv>h2,.idx>h2{font-size:1.25rem;font-weight:700}
+.inv>p{margin:6px 0 0;color:var(--muted)}
+.inv-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.inv-c{padding:16px 18px;border:1px solid var(--line);border-radius:14px;min-width:0}
+.inv-c h3{font-size:1rem;font-weight:700}
+.cnt{margin:2px 0 10px;font-size:.875rem;color:var(--muted);font-variant-numeric:tabular-nums}.cnt b{color:var(--fg)}
+.inv-c ul{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:.9375rem;line-height:1.4}
+.inv-c li{display:flex;gap:9px;align-items:baseline}
+.mk{flex:none;width:11px;height:11px;border-radius:3px;transform:translateY(1px);border:1.5px solid var(--fg)}
+.td .mk{border:1.5px dashed var(--todo)}.td{color:var(--fg)}
+.ok{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.idx{margin-top:40px}
+.idx ol{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px}
+.idx a{display:flex;gap:12px;align-items:center;min-height:48px;padding:8px 14px;border-radius:12px;background:var(--lane);color:var(--fg);text-decoration:none;font-weight:600}
+.idx a:hover{background:var(--sys)}
+.n{font-variant-numeric:tabular-nums}
+.idx .n{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:.8125rem;flex:none}
+.flow{margin-top:64px;scroll-margin-top:16px}
+.flow header{display:grid;gap:6px;max-width:70ch}
+.flow header .n{font-size:.8125rem;font-weight:700;color:var(--todo);letter-spacing:.04em;text-transform:uppercase}
+.flow h2{font-size:1.625rem;line-height:1.25;font-weight:700;letter-spacing:-.015em}
+.flow header p{margin:0;color:var(--muted)}
+figure{margin:20px 0 0}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--bg)}
+.scroll:focus-visible{outline:2px solid var(--todo);outline-offset:2px}
+svg.fl{display:block;max-width:none;color:var(--edge);font-family:var(--f-body)}
+figcaption{margin-top:10px;font-size:.875rem;color:var(--muted)}
+.fl .lane{fill:var(--bg)}.fl .lane.alt{fill:var(--lane)}
+.fl .lt{fill:var(--fg);font-size:13px;font-weight:700}.fl .lv{fill:var(--muted);font-size:11.5px}
+.fl .ed{fill:none;stroke:var(--edge);stroke-width:1.6}.fl .ah{fill:var(--edge)}
+.fl .el{fill:var(--muted);font-size:11.5px;font-weight:500;paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+.fl .nd rect{fill:var(--card);stroke:var(--fg);stroke-width:1.5}
+.fl .nd.todo rect{stroke:var(--todo);stroke-width:2;stroke-dasharray:6 4}
+.fl .nd.sys rect{fill:var(--sys);stroke:none}
+.fl .nd.prop rect{stroke:var(--muted);stroke-dasharray:2 3}
+.fl .eb{fill:var(--muted);font-size:11.5px;font-weight:600}
+.fl .nd.todo .eb{fill:var(--todo)}
+.fl .lb{fill:var(--fg);font-size:13.5px;font-weight:600}
+.fl .nt{fill:var(--muted);font-size:11.5px}
+.below{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 28px;margin-top:16px}
+@media (max-width:760px){.below{grid-template-columns:1fr}}
+details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:8px;list-style:none}details summary::-webkit-details-marker{display:none}details summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s}details[open] summary::before{transform:rotate(45deg)}@media (prefers-reduced-motion:reduce){details summary::before{transition:none}}
+.steps{margin:4px 0 0;padding-left:1.3em;display:grid;gap:4px;font-size:.9375rem}
+.scr{color:var(--muted)}
+.qs h3{font-size:.9375rem;font-weight:700;min-height:44px;display:flex;align-items:center}
+.qs p{margin:0;font-size:.9375rem;color:var(--muted)}.qs ul+h3{margin-top:6px}.qs ul{margin:0;padding-left:1.1em;display:grid;gap:6px;font-size:.9375rem}
+.src{margin-top:72px;padding-top:18px;border-top:1px solid var(--line);font-size:.875rem;color:var(--muted)}
+.src code{font-size:.8125rem}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--todo);outline-offset:2px;border-radius:6px}
+</style>
+<div class="wrap">
+<header class="top">
+<h1>Use flows across the three roles</h1>
+<p>Six journeys in the Sunshine Apartment Forum where work passes between a resident, the automatic checks, a manager and the admin. Each diagram reads top to bottom, and each box is one step on one screen. Boxes are drawn by whether that screen exists yet, so the gaps show what to prototype next.</p>
+</header>
+<div class="legend" aria-label="Legend"><span><i class="sw" aria-hidden="true"></i>In the prototype</span><span><i class="sw todo" aria-hidden="true"></i>Screen to build</span><span><i class="sw sys" aria-hidden="true"></i>Automatic step, no screen</span><span><i class="sw prop" aria-hidden="true"></i>Proposed, needs owner approval</span></div>
+<section class="inv" aria-labelledby="inv-h"><h2 id="inv-h">Screens these flows need</h2><p>30 of 30 screens exist. Every screen these flows need is now in the prototype, for residents, managers and administrators.</p><div class="inv-g"><section class="inv-c"><h3>Resident</h3><p class="cnt"><b>15</b> built · <b>0</b> to build</p><ul><li class="ok"><span class="mk" aria-hidden="true"></span>Bảng tin and channels<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Bài viết<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Đăng bài<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Cảnh báo trước khi gửi<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Báo cáo<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Thông báo<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Yêu cầu của tôi<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Yêu cầu xem xét lại<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Quy tắc and Thay đổi quy tắc<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Tìm kiếm<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Đặt mật khẩu and Đăng nhập<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Kết quả xem xét lại<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Tạm chỉ được đọc<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Sửa or xóa bài<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Cài đặt: email and notifications<span class="sr"> (in the prototype)</span></li></ul></section><section class="inv-c"><h3>Manager</h3><p class="cnt"><b>6</b> built · <b>0</b> to build</p><ul><li class="ok"><span class="mk" aria-hidden="true"></span>Hàng chờ kiểm duyệt<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Xem trường hợp<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Xem xét lại<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Trả lời chính thức<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Soạn tin ban quản lý<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Cập nhật and kết thúc thông báo<span class="sr"> (in the prototype)</span></li></ul></section><section class="inv-c"><h3>Admin</h3><p class="cnt"><b>9</b> built · <b>0</b> to build</p><ul><li class="ok"><span class="mk" aria-hidden="true"></span>Mời cư dân and ngừng truy cập<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Thay đổi quy tắc<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Vai trò<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Bộ lọc AI and outage policy<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Từ khóa chặn<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Báo cáo về ban quản lý<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Phân tích<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Nhật ký kiểm tra<span class="sr"> (in the prototype)</span></li><li class="ok"><span class="mk" aria-hidden="true"></span>Xuất dữ liệu huấn luyện<span class="sr"> (in the prototype)</span></li></ul></section></div></section>
+<nav class="idx" aria-labelledby="idx-h"><h2 id="idx-h">Flows</h2><ol><li><a href="#held-post"><span class="n">1</span>A post is held for review</a></li><li><a href="#appeal"><span class="n">2</span>An appeal can change a rule</a></li><li><a href="#report"><span class="n">3</span>A report reaches a decision</a></li><li><a href="#urgent"><span class="n">4</span>An urgent notice runs its course</a></li><li><a href="#outage"><span class="n">5</span>The AI checker goes offline</a></li><li><a href="#invite"><span class="n">6</span>A new resident is invited</a></li></ol></nav>
+<section class="flow" id="held-post" aria-labelledby="h-held-post">
+<header><span class="n">Flow 1</span><h2 id="h-held-post">A post is held for review</h2><p>A resident&#x27;s post that the AI is unsure about waits hidden until a manager decides, and the resident hears the outcome.</p></header>
+<figure><div class="scroll" tabindex="0" aria-label="Diagram, scrolls sideways on small screens"><svg class="fl" viewBox="0 0 944 1238" width="944" height="1238" role="img" aria-label="A resident&#x27;s post that the AI is unsure about waits hidden until a manager decides, and the resident hears the outcome." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker></defs>
+<rect class="lane " x="0" y="0" width="236" height="1238"/>
+<text class="lt" x="118.0" y="24" text-anchor="middle">Resident</text><text class="lv" x="118.0" y="41" text-anchor="middle">Cư dân</text>
+<rect class="lane alt" x="236" y="0" width="236" height="1238"/>
+<text class="lt" x="354.0" y="24" text-anchor="middle">System</text><text class="lv" x="354.0" y="41" text-anchor="middle">Hệ thống</text>
+<rect class="lane " x="472" y="0" width="236" height="1238"/>
+<text class="lt" x="590.0" y="24" text-anchor="middle">Manager</text><text class="lv" x="590.0" y="41" text-anchor="middle">Ban quản lý</text>
+<rect class="lane alt" x="708" y="0" width="236" height="1238"/>
+<text class="lt" x="826.0" y="24" text-anchor="middle">Admin</text><text class="lv" x="826.0" y="41" text-anchor="middle">Quản trị viên</text>
+<path class="ed" d="M118.0 115V140.0H354.0V163" marker-end="url(#arr1)"/>
+<text class="el" x="236.0" y="133.0" text-anchor="middle">types, pauses</text>
+<path class="ed" d="M354.0 240V265.0H118.0V288" marker-end="url(#arr1)"/>
+<text class="el" x="236.0" y="258.0" text-anchor="middle">flagged</text>
+<path class="ed" d="M118.0 366V391.0H354.0V414" marker-end="url(#arr1)"/>
+<text class="el" x="236.0" y="384.0" text-anchor="middle">sends anyway</text>
+<path class="ed" d="M354.0 506V531.0H118.0V554" marker-end="url(#arr1)"/>
+<text class="el" x="236.0" y="524.0" text-anchor="middle">status shown</text>
+<path class="ed" d="M354.0 506V531.0H590.0V554" marker-end="url(#arr1)"/>
+<text class="el" x="472.0" y="524.0" text-anchor="middle">queued</text>
+<path class="ed" d="M590.0 649V697" marker-end="url(#arr1)"/>
+<text class="el" x="599.0" y="678.0">opens</text>
+<path class="ed" d="M590.0 807V832.0H354.0V855" marker-end="url(#arr1)"/>
+<text class="el" x="472.0" y="825.0" text-anchor="middle">decision</text>
+<path class="ed" d="M354.0 932V957.0H118.0V980" marker-end="url(#arr1)"/>
+<text class="el" x="236.0" y="950.0" text-anchor="middle">notifies</text>
+<path class="ed" d="M118.0 1073V1121" marker-end="url(#arr1)"/>
+<text class="el" x="127.0" y="1102.0">repeated strikes</text>
+<g class="nd built"><rect x="18.0" y="58" width="200" height="57" rx="10"/>
+<text class="eb" x="32.0" y="84">Đăng bài</text>
+<text class="lb" x="32.0" y="103">Writes a post</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="165" width="200" height="75" rx="14"/>
+<text class="lb" x="268.0" y="194">Checks the draft</text>
+<text class="nt" x="268.0" y="213">Blocklist in the browser,</text>
+<text class="nt" x="268.0" y="228">model after a typing pause</text>
+</g>
+<g class="nd built"><rect x="18.0" y="290" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="316">Cảnh báo trước khi gửi</text>
+<text class="lb" x="32.0" y="335">Sees a warning</text>
+<text class="nt" x="32.0" y="354">Sửa lại, or Vẫn gửi</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="416" width="200" height="90" rx="14"/>
+<text class="lb" x="268.0" y="445">Scans on submit</text>
+<text class="nt" x="268.0" y="464">Low score: published. Middle</text>
+<text class="nt" x="268.0" y="479">band: pending. Very high</text>
+<text class="nt" x="268.0" y="494">offensive: deleted</text>
+</g>
+<g class="nd built"><rect x="18.0" y="556" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="582">Bài viết · Yêu cầu của tôi</text>
+<text class="lb" x="32.0" y="601">Sees “Đang chờ xem xét”</text>
+<text class="nt" x="32.0" y="620">Hidden from everyone else</text>
+</g>
+<g class="nd built"><rect x="490.0" y="556" width="200" height="93" rx="10"/>
+<text class="eb" x="504.0" y="582">Hàng chờ kiểm duyệt</text>
+<text class="lb" x="504.0" y="601">Case appears in the</text>
+<text class="lb" x="504.0" y="618">queue</text>
+<text class="nt" x="504.0" y="637">Cần xem or Mức cao group</text>
+</g>
+<g class="nd built"><rect x="490.0" y="699" width="200" height="108" rx="10"/>
+<text class="eb" x="504.0" y="725">Xem trường hợp</text>
+<text class="lb" x="504.0" y="744">Reveals hidden words,</text>
+<text class="lb" x="504.0" y="761">decides</text>
+<text class="nt" x="504.0" y="780">Cho phép đăng, or Từ chối</text>
+<text class="nt" x="504.0" y="795">with a rule</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="857" width="200" height="75" rx="14"/>
+<text class="lb" x="268.0" y="886">Applies the decision</text>
+<text class="nt" x="268.0" y="905">Logs an override if the AI is</text>
+<text class="nt" x="268.0" y="920">overruled; counts a strike</text>
+</g>
+<g class="nd built"><rect x="18.0" y="982" width="200" height="91" rx="10"/>
+<text class="eb" x="32.0" y="1008">Thông báo</text>
+<text class="lb" x="32.0" y="1027">Gets the outcome</text>
+<text class="nt" x="32.0" y="1046">Published, or removed with</text>
+<text class="nt" x="32.0" y="1061">the rule and appeal deadline</text>
+</g>
+<g class="nd built"><rect x="18.0" y="1123" width="200" height="91" rx="10"/>
+<text class="eb" x="32.0" y="1149">Tạm chỉ được đọc</text>
+<text class="lb" x="32.0" y="1168">Read-only banner</text>
+<text class="nt" x="32.0" y="1187">With the end date; reporting</text>
+<text class="nt" x="32.0" y="1202">still works</text>
+</g>
+</svg></div>
+<figcaption>Every screen in this flow exists.</figcaption></figure>
+<div class="below"><details><summary>Steps as text</summary><ol class="steps"><li><b>Resident:</b> Writes a post <span class="scr">(Đăng bài, in the prototype)</span></li><li><b>System:</b> Checks the draft. Blocklist in the browser, model after a typing pause</li><li><b>Resident:</b> Sees a warning. Sửa lại, or Vẫn gửi <span class="scr">(Cảnh báo trước khi gửi, in the prototype)</span></li><li><b>System:</b> Scans on submit. Low score: published. Middle band: pending. Very high offensive: deleted</li><li><b>Resident:</b> Sees “Đang chờ xem xét”. Hidden from everyone else <span class="scr">(Bài viết · Yêu cầu của tôi, in the prototype)</span></li><li><b>Manager:</b> Case appears in the queue. Cần xem or Mức cao group <span class="scr">(Hàng chờ kiểm duyệt, in the prototype)</span></li><li><b>Manager:</b> Reveals hidden words, decides. Cho phép đăng, or Từ chối with a rule <span class="scr">(Xem trường hợp, in the prototype)</span></li><li><b>System:</b> Applies the decision. Logs an override if the AI is overruled; counts a strike</li><li><b>Resident:</b> Gets the outcome. Published, or removed with the rule and appeal deadline <span class="scr">(Thông báo, in the prototype)</span></li><li><b>Resident:</b> Read-only banner. With the end date; reporting still works <span class="scr">(Tạm chỉ được đọc, in the prototype)</span></li></ol></details>
+<div class="qs"><h3>Decided</h3><ul><li>Only rejected or auto-deleted content can be appealed; content still pending review cannot.</li><li>A manager decision can be undone for 10 seconds, and the resident is notified only after that.</li></ul><h3>Open questions</h3><p>None left in this flow.</p></div></div>
+</section><section class="flow" id="appeal" aria-labelledby="h-appeal">
+<header><span class="n">Flow 2</span><h2 id="h-appeal">An appeal can change a rule</h2><p>A removed post can be appealed once; a different manager or the admin decides, and accepted appeals can lead the owner to publish a rule change.</p></header>
+<figure><div class="scroll" tabindex="0" aria-label="Diagram, scrolls sideways on small screens"><svg class="fl" viewBox="0 0 944 1254" width="944" height="1254" role="img" aria-label="A removed post can be appealed once; a different manager or the admin decides, and accepted appeals can lead the owner to publish a rule change." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker></defs>
+<rect class="lane " x="0" y="0" width="236" height="1254"/>
+<text class="lt" x="118.0" y="24" text-anchor="middle">Resident</text><text class="lv" x="118.0" y="41" text-anchor="middle">Cư dân</text>
+<rect class="lane alt" x="236" y="0" width="236" height="1254"/>
+<text class="lt" x="354.0" y="24" text-anchor="middle">System</text><text class="lv" x="354.0" y="41" text-anchor="middle">Hệ thống</text>
+<rect class="lane " x="472" y="0" width="236" height="1254"/>
+<text class="lt" x="590.0" y="24" text-anchor="middle">Manager</text><text class="lv" x="590.0" y="41" text-anchor="middle">Ban quản lý</text>
+<rect class="lane alt" x="708" y="0" width="236" height="1254"/>
+<text class="lt" x="826.0" y="24" text-anchor="middle">Admin</text><text class="lv" x="826.0" y="41" text-anchor="middle">Quản trị viên</text>
+<path class="ed" d="M118.0 149V197" marker-end="url(#arr2)"/>
+<text class="el" x="127.0" y="178.0">Yêu cầu xem xét lại</text>
+<path class="ed" d="M118.0 307V332.0H354.0V355" marker-end="url(#arr2)"/>
+<text class="el" x="236.0" y="325.0" text-anchor="middle">sent</text>
+<path class="ed" d="M354.0 449V474.0H590.0V497" marker-end="url(#arr2)"/>
+<text class="el" x="472.0" y="467.0" text-anchor="middle">priority case</text>
+<path class="ed" d="M590.0 573V621" marker-end="url(#arr2)"/>
+<path class="ed" d="M590.0 699V724.0H354.0V747" marker-end="url(#arr2)"/>
+<text class="el" x="472.0" y="717.0" text-anchor="middle">decision</text>
+<path class="ed" d="M354.0 841V866.0H118.0V889" marker-end="url(#arr2)"/>
+<text class="el" x="236.0" y="859.0" text-anchor="middle">notifies</text>
+<path class="ed" d="M590.0 699V866.0H826.0V889" marker-end="url(#arr2)"/>
+<text class="el" x="708.0" y="859.0" text-anchor="middle">accepted appeals inform</text>
+<path class="ed" d="M826.0 999V1114.0H118.0V1137" marker-end="url(#arr2)"/>
+<text class="el" x="472.0" y="1107.0" text-anchor="middle">published</text>
+<g class="nd built"><rect x="18.0" y="58" width="200" height="91" rx="10"/>
+<text class="eb" x="32.0" y="84">Thông báo</text>
+<text class="lb" x="32.0" y="103">Opens the removal notice</text>
+<text class="nt" x="32.0" y="122">Shows the rule and the 30-day</text>
+<text class="nt" x="32.0" y="137">deadline</text>
+</g>
+<g class="nd built"><rect x="18.0" y="199" width="200" height="108" rx="10"/>
+<text class="eb" x="32.0" y="225">Yêu cầu xem xét lại</text>
+<text class="lb" x="32.0" y="244">Writes a reason, checks,</text>
+<text class="lb" x="32.0" y="261">sends</text>
+<text class="nt" x="32.0" y="280">One appeal only, within 30</text>
+<text class="nt" x="32.0" y="295">days</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="357" width="200" height="92" rx="14"/>
+<text class="lb" x="268.0" y="386">Moves it to the priority</text>
+<text class="lb" x="268.0" y="403">queue</text>
+<text class="nt" x="268.0" y="422">Assigns a different manager,</text>
+<text class="nt" x="268.0" y="437">or the admin</text>
+</g>
+<g class="nd built"><rect x="490.0" y="499" width="200" height="74" rx="10"/>
+<text class="eb" x="504.0" y="525">Xem xét lại</text>
+<text class="lb" x="504.0" y="544">Reads content, rule,</text>
+<text class="lb" x="504.0" y="561">reason</text>
+</g>
+<g class="nd built"><rect x="490.0" y="623" width="200" height="76" rx="10"/>
+<text class="eb" x="504.0" y="649">Quyết định</text>
+<text class="lb" x="504.0" y="668">Accepts or declines</text>
+<text class="nt" x="504.0" y="687">The decision is final</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="749" width="200" height="92" rx="14"/>
+<text class="lb" x="268.0" y="778">Restores or keeps it</text>
+<text class="lb" x="268.0" y="795">removed</text>
+<text class="nt" x="268.0" y="814">Accepted: strike removed,</text>
+<text class="nt" x="268.0" y="829">override logged</text>
+</g>
+<g class="nd built"><rect x="18.0" y="891" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="917">Kết quả xem xét lại</text>
+<text class="lb" x="32.0" y="936">Sees the outcome</text>
+<text class="nt" x="32.0" y="955">Accepted or declined message</text>
+</g>
+<g class="nd built"><rect x="726.0" y="891" width="200" height="108" rx="10"/>
+<text class="eb" x="740.0" y="917">Thay đổi quy tắc</text>
+<text class="lb" x="740.0" y="936">Owner publishes a rule</text>
+<text class="lb" x="740.0" y="953">change</text>
+<text class="nt" x="740.0" y="972">Before, after and why; the</text>
+<text class="nt" x="740.0" y="987">log is public</text>
+</g>
+<g class="nd built"><rect x="18.0" y="1139" width="200" height="91" rx="10"/>
+<text class="eb" x="32.0" y="1165">Quy tắc · Thay đổi quy tắc</text>
+<text class="lb" x="32.0" y="1184">Sees the change</text>
+<text class="nt" x="32.0" y="1203">Marked “Đã cập nhật” on the</text>
+<text class="nt" x="32.0" y="1218">rule</text>
+</g>
+</svg></div>
+<figcaption>Every screen in this flow exists.</figcaption></figure>
+<div class="below"><details><summary>Steps as text</summary><ol class="steps"><li><b>Resident:</b> Opens the removal notice. Shows the rule and the 30-day deadline <span class="scr">(Thông báo, in the prototype)</span></li><li><b>Resident:</b> Writes a reason, checks, sends. One appeal only, within 30 days <span class="scr">(Yêu cầu xem xét lại, in the prototype)</span></li><li><b>System:</b> Moves it to the priority queue. Assigns a different manager, or the admin</li><li><b>Manager:</b> Reads content, rule, reason <span class="scr">(Xem xét lại, in the prototype)</span></li><li><b>Manager:</b> Accepts or declines. The decision is final <span class="scr">(Quyết định, in the prototype)</span></li><li><b>System:</b> Restores or keeps it removed. Accepted: strike removed, override logged</li><li><b>Resident:</b> Sees the outcome. Accepted or declined message <span class="scr">(Kết quả xem xét lại, in the prototype)</span></li><li><b>Admin:</b> Owner publishes a rule change. Before, after and why; the log is public <span class="scr">(Thay đổi quy tắc, in the prototype)</span></li><li><b>Resident:</b> Sees the change. Marked “Đã cập nhật” on the rule <span class="scr">(Quy tắc · Thay đổi quy tắc, in the prototype)</span></li></ol></details>
+<div class="qs"><h3>Decided</h3><ul><li>Only the owner changes rules. The change log and the weekly figures are public.</li><li>The appeal form follows the specification: it asks for a reason only, with no rule-suggestion field.</li></ul><h3>Open questions</h3><p>None left in this flow.</p></div></div>
+</section><section class="flow" id="report" aria-labelledby="h-report">
+<header><span class="n">Flow 3</span><h2 id="h-report">A report reaches a decision</h2><p>Reports stay visible while a manager reviews them; reports about managers go to the admin, and both the reporter and the author hear the result.</p></header>
+<figure><div class="scroll" tabindex="0" aria-label="Diagram, scrolls sideways on small screens"><svg class="fl" viewBox="0 0 944 961" width="944" height="961" role="img" aria-label="Reports stay visible while a manager reviews them; reports about managers go to the admin, and both the reporter and the author hear the result." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker></defs>
+<rect class="lane " x="0" y="0" width="236" height="961"/>
+<text class="lt" x="118.0" y="24" text-anchor="middle">Resident</text><text class="lv" x="118.0" y="41" text-anchor="middle">Cư dân</text>
+<rect class="lane alt" x="236" y="0" width="236" height="961"/>
+<text class="lt" x="354.0" y="24" text-anchor="middle">System</text><text class="lv" x="354.0" y="41" text-anchor="middle">Hệ thống</text>
+<rect class="lane " x="472" y="0" width="236" height="961"/>
+<text class="lt" x="590.0" y="24" text-anchor="middle">Manager</text><text class="lv" x="590.0" y="41" text-anchor="middle">Ban quản lý</text>
+<rect class="lane alt" x="708" y="0" width="236" height="961"/>
+<text class="lt" x="826.0" y="24" text-anchor="middle">Admin</text><text class="lv" x="826.0" y="41" text-anchor="middle">Quản trị viên</text>
+<path class="ed" d="M118.0 134V159.0H354.0V182" marker-end="url(#arr3)"/>
+<text class="el" x="236.0" y="152.0" text-anchor="middle">submitted</text>
+<path class="ed" d="M354.0 259V284.0H590.0V307" marker-end="url(#arr3)"/>
+<text class="el" x="472.0" y="277.0" text-anchor="middle">queued</text>
+<path class="ed" d="M354.0 259V284.0H826.0V307" marker-end="url(#arr3)"/>
+<text class="el" x="590.0" y="277.0" text-anchor="middle">about a manager</text>
+<path class="ed" d="M590.0 366V450" marker-end="url(#arr3)"/>
+<path class="ed" d="M590.0 528V553.0H354.0V576" marker-end="url(#arr3)"/>
+<text class="el" x="472.0" y="546.0" text-anchor="middle">decision</text>
+<path class="ed" d="M354.0 668V693.0H118.0V716" marker-end="url(#arr3)"/>
+<text class="el" x="236.0" y="686.0" text-anchor="middle">notifies reporter</text>
+<path class="ed" d="M354.0 668V819.0H118.0V842" marker-end="url(#arr3)"/>
+<text class="el" x="236.0" y="812.0" text-anchor="middle">if rejected</text>
+<g class="nd built"><rect x="18.0" y="58" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="84">Báo cáo</text>
+<text class="lb" x="32.0" y="103">Reports with a rule</text>
+<text class="nt" x="32.0" y="122">Optional note; once per item</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="184" width="200" height="75" rx="14"/>
+<text class="lb" x="268.0" y="213">Groups reports per item</text>
+<text class="nt" x="268.0" y="232">Shows a count; high-severity</text>
+<text class="nt" x="268.0" y="247">rules first</text>
+</g>
+<g class="nd built"><rect x="490.0" y="309" width="200" height="57" rx="10"/>
+<text class="eb" x="504.0" y="335">Hàng chờ · Báo cáo</text>
+<text class="lb" x="504.0" y="354">Opens the reported item</text>
+</g>
+<g class="nd built"><rect x="726.0" y="309" width="200" height="93" rx="10"/>
+<text class="eb" x="740.0" y="335">Báo cáo về ban quản lý</text>
+<text class="lb" x="740.0" y="354">Reviews reports on</text>
+<text class="lb" x="740.0" y="371">managers</text>
+<text class="nt" x="740.0" y="390">Decides the same way</text>
+</g>
+<g class="nd built"><rect x="490.0" y="452" width="200" height="76" rx="10"/>
+<text class="eb" x="504.0" y="478">Quyết định</text>
+<text class="lb" x="504.0" y="497">Dismisses or rejects</text>
+<text class="nt" x="504.0" y="516">Rejecting needs a rule</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="578" width="200" height="90" rx="14"/>
+<text class="lb" x="268.0" y="607">Applies the outcome</text>
+<text class="nt" x="268.0" y="626">Reject: strike, and a false</text>
+<text class="nt" x="268.0" y="641">negative if the AI had</text>
+<text class="nt" x="268.0" y="656">published it</text>
+</g>
+<g class="nd built"><rect x="18.0" y="718" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="744">Yêu cầu của tôi</text>
+<text class="lb" x="32.0" y="763">Reporter sees the result</text>
+<text class="nt" x="32.0" y="782">Đã xử lý, or Không vi phạm</text>
+</g>
+<g class="nd built"><rect x="18.0" y="844" width="200" height="93" rx="10"/>
+<text class="eb" x="32.0" y="870">Thông báo</text>
+<text class="lb" x="32.0" y="889">Author gets a removal</text>
+<text class="lb" x="32.0" y="906">notice</text>
+<text class="nt" x="32.0" y="925">Can appeal (flow 2)</text>
+</g>
+</svg></div>
+<figcaption>Every screen in this flow exists.</figcaption></figure>
+<div class="below"><details><summary>Steps as text</summary><ol class="steps"><li><b>Resident:</b> Reports with a rule. Optional note; once per item <span class="scr">(Báo cáo, in the prototype)</span></li><li><b>System:</b> Groups reports per item. Shows a count; high-severity rules first</li><li><b>Manager:</b> Opens the reported item <span class="scr">(Hàng chờ · Báo cáo, in the prototype)</span></li><li><b>Admin:</b> Reviews reports on managers. Decides the same way <span class="scr">(Báo cáo về ban quản lý, in the prototype)</span></li><li><b>Manager:</b> Dismisses or rejects. Rejecting needs a rule <span class="scr">(Quyết định, in the prototype)</span></li><li><b>System:</b> Applies the outcome. Reject: strike, and a false negative if the AI had published it</li><li><b>Resident:</b> Reporter sees the result. Đã xử lý, or Không vi phạm <span class="scr">(Yêu cầu của tôi, in the prototype)</span></li><li><b>Resident:</b> Author gets a removal notice. Can appeal (flow 2) <span class="scr">(Thông báo, in the prototype)</span></li></ol></details>
+<div class="qs"><h3>Decided</h3><ul><li>Reports about the owner&#x27;s own posts go to another manager. Residents can report them like any other post; no one decides on their own content.</li></ul><h3>Open questions</h3><p>None left in this flow.</p></div></div>
+</section><section class="flow" id="urgent" aria-labelledby="h-urgent">
+<header><span class="n">Flow 4</span><h2 id="h-urgent">An urgent notice runs its course</h2><p>A manager&#x27;s urgent notice is emailed to every active resident, collects timed updates, and retires itself when marked done.</p></header>
+<figure><div class="scroll" tabindex="0" aria-label="Diagram, scrolls sideways on small screens"><svg class="fl" viewBox="0 0 944 1257" width="944" height="1257" role="img" aria-label="A manager&#x27;s urgent notice is emailed to every active resident, collects timed updates, and retires itself when marked done." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arr4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker></defs>
+<rect class="lane " x="0" y="0" width="236" height="1257"/>
+<text class="lt" x="118.0" y="24" text-anchor="middle">Resident</text><text class="lv" x="118.0" y="41" text-anchor="middle">Cư dân</text>
+<rect class="lane alt" x="236" y="0" width="236" height="1257"/>
+<text class="lt" x="354.0" y="24" text-anchor="middle">System</text><text class="lv" x="354.0" y="41" text-anchor="middle">Hệ thống</text>
+<rect class="lane " x="472" y="0" width="236" height="1257"/>
+<text class="lt" x="590.0" y="24" text-anchor="middle">Manager</text><text class="lv" x="590.0" y="41" text-anchor="middle">Ban quản lý</text>
+<rect class="lane alt" x="708" y="0" width="236" height="1257"/>
+<text class="lt" x="826.0" y="24" text-anchor="middle">Admin</text><text class="lv" x="826.0" y="41" text-anchor="middle">Quản trị viên</text>
+<path class="ed" d="M590.0 166V191.0H354.0V214" marker-end="url(#arr4)"/>
+<text class="el" x="472.0" y="184.0" text-anchor="middle">publish</text>
+<path class="ed" d="M354.0 291V316.0H118.0V339" marker-end="url(#arr4)"/>
+<text class="el" x="236.0" y="309.0" text-anchor="middle">banner, email</text>
+<path class="ed" d="M118.0 417V465" marker-end="url(#arr4)"/>
+<text class="el" x="127.0" y="446.0">opens</text>
+<path class="ed" d="M118.0 575V600.0H590.0V623" marker-end="url(#arr4)"/>
+<text class="el" x="354.0" y="593.0" text-anchor="middle">question</text>
+<path class="ed" d="M590.0 716V764" marker-end="url(#arr4)"/>
+<text class="el" x="599.0" y="745.0">later</text>
+<path class="ed" d="M590.0 857V882.0H354.0V905" marker-end="url(#arr4)"/>
+<text class="el" x="472.0" y="875.0" text-anchor="middle">update</text>
+<path class="ed" d="M590.0 857V1015" marker-end="url(#arr4)"/>
+<text class="el" x="599.0" y="886.0">when finished</text>
+<path class="ed" d="M590.0 1108V1133.0H354.0V1156" marker-end="url(#arr4)"/>
+<text class="el" x="472.0" y="1126.0" text-anchor="middle">done</text>
+<g class="nd built"><rect x="490.0" y="58" width="200" height="108" rx="10"/>
+<text class="eb" x="504.0" y="84">Soạn tin ban quản lý</text>
+<text class="lb" x="504.0" y="103">Writes a notice, picks a</text>
+<text class="lb" x="504.0" y="120">level, previews it</text>
+<text class="nt" x="504.0" y="139">Level, who is affected, when,</text>
+<text class="nt" x="504.0" y="154">what to do, contact</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="216" width="200" height="75" rx="14"/>
+<text class="lb" x="268.0" y="245">Publishes and sends</text>
+<text class="nt" x="268.0" y="264">Banner, push, and the full</text>
+<text class="nt" x="268.0" y="279">text by email</text>
+</g>
+<g class="nd built"><rect x="18.0" y="341" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="367">Bảng tin</text>
+<text class="lb" x="32.0" y="386">Sees the card or strip</text>
+<text class="nt" x="32.0" y="405">Date first; can hide it</text>
+</g>
+<g class="nd built"><rect x="18.0" y="467" width="200" height="108" rx="10"/>
+<text class="eb" x="32.0" y="493">Thông báo · bài viết</text>
+<text class="lb" x="32.0" y="512">Opens it, asks a</text>
+<text class="lb" x="32.0" y="529">question</text>
+<text class="nt" x="32.0" y="548">Comments are checked more</text>
+<text class="nt" x="32.0" y="563">strictly</text>
+</g>
+<g class="nd built"><rect x="490.0" y="625" width="200" height="91" rx="10"/>
+<text class="eb" x="504.0" y="651">Trả lời chính thức</text>
+<text class="lb" x="504.0" y="670">Replies officially</text>
+<text class="nt" x="504.0" y="689">Reuses the thread, as a</text>
+<text class="nt" x="504.0" y="704">manager</text>
+</g>
+<g class="nd built"><rect x="490.0" y="766" width="200" height="91" rx="10"/>
+<text class="eb" x="504.0" y="792">Cập nhật thông báo</text>
+<text class="lb" x="504.0" y="811">Posts a timed update</text>
+<text class="nt" x="504.0" y="830">Also emailed to every</text>
+<text class="nt" x="504.0" y="845">resident</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="907" width="200" height="60" rx="14"/>
+<text class="lb" x="268.0" y="936">Shows the banner again</text>
+<text class="nt" x="268.0" y="955">To residents who hid it</text>
+</g>
+<g class="nd built"><rect x="490.0" y="1017" width="200" height="91" rx="10"/>
+<text class="eb" x="504.0" y="1043">Kết thúc thông báo</text>
+<text class="lb" x="504.0" y="1062">Marks it done</text>
+<text class="nt" x="504.0" y="1081">With a closing note, also</text>
+<text class="nt" x="504.0" y="1096">emailed</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="1158" width="200" height="75" rx="14"/>
+<text class="lb" x="268.0" y="1187">Retires the banner</text>
+<text class="nt" x="268.0" y="1206">The notice stays in Tin ban</text>
+<text class="nt" x="268.0" y="1221">quản lý</text>
+</g>
+</svg></div>
+<figcaption>Every screen in this flow exists.</figcaption></figure>
+<div class="below"><details><summary>Steps as text</summary><ol class="steps"><li><b>Manager:</b> Writes a notice, picks a level, previews it. Level, who is affected, when, what to do, contact <span class="scr">(Soạn tin ban quản lý, in the prototype)</span></li><li><b>System:</b> Publishes and sends. Banner, push, and the full text by email</li><li><b>Resident:</b> Sees the card or strip. Date first; can hide it <span class="scr">(Bảng tin, in the prototype)</span></li><li><b>Resident:</b> Opens it, asks a question. Comments are checked more strictly <span class="scr">(Thông báo · bài viết, in the prototype)</span></li><li><b>Manager:</b> Replies officially. Reuses the thread, as a manager <span class="scr">(Trả lời chính thức, in the prototype)</span></li><li><b>Manager:</b> Posts a timed update. Also emailed to every resident <span class="scr">(Cập nhật thông báo, in the prototype)</span></li><li><b>System:</b> Shows the banner again. To residents who hid it</li><li><b>Manager:</b> Marks it done. With a closing note, also emailed <span class="scr">(Kết thúc thông báo, in the prototype)</span></li><li><b>System:</b> Retires the banner. The notice stays in Tin ban quản lý</li></ol></details>
+<div class="qs"><h3>Decided</h3><ul><li>Owners and managers can both use either level, Khẩn cấp or Quan trọng.</li><li>Each timed update is emailed as well as shown on the forum.</li><li>During an AI outage, urgent notices are not held: the blocklist runs, they go out and are emailed at once, and they are rescanned later.</li></ul><h3>Open questions</h3><p>None left in this flow.</p></div></div>
+</section><section class="flow" id="outage" aria-labelledby="h-outage">
+<header><span class="n">Flow 5</span><h2 id="h-outage">The AI checker goes offline</h2><p>When the model times out, the outage policy holds posts by default, and everything is rescanned automatically when it returns.</p></header>
+<figure><div class="scroll" tabindex="0" aria-label="Diagram, scrolls sideways on small screens"><svg class="fl" viewBox="0 0 944 835" width="944" height="835" role="img" aria-label="When the model times out, the outage policy holds posts by default, and everything is rescanned automatically when it returns." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arr5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker></defs>
+<rect class="lane " x="0" y="0" width="236" height="835"/>
+<text class="lt" x="118.0" y="24" text-anchor="middle">Resident</text><text class="lv" x="118.0" y="41" text-anchor="middle">Cư dân</text>
+<rect class="lane alt" x="236" y="0" width="236" height="835"/>
+<text class="lt" x="354.0" y="24" text-anchor="middle">System</text><text class="lv" x="354.0" y="41" text-anchor="middle">Hệ thống</text>
+<rect class="lane " x="472" y="0" width="236" height="835"/>
+<text class="lt" x="590.0" y="24" text-anchor="middle">Manager</text><text class="lv" x="590.0" y="41" text-anchor="middle">Ban quản lý</text>
+<rect class="lane alt" x="708" y="0" width="236" height="835"/>
+<text class="lt" x="826.0" y="24" text-anchor="middle">Admin</text><text class="lv" x="826.0" y="41" text-anchor="middle">Quản trị viên</text>
+<path class="ed" d="M118.0 134V159.0H354.0V182" marker-end="url(#arr5)"/>
+<text class="el" x="236.0" y="152.0" text-anchor="middle">submit</text>
+<path class="ed" d="M354.0 244V269.0H118.0V292" marker-end="url(#arr5)"/>
+<text class="el" x="236.0" y="262.0" text-anchor="middle">held</text>
+<path class="ed" d="M354.0 244V269.0H590.0V292" marker-end="url(#arr5)"/>
+<text class="el" x="472.0" y="262.0" text-anchor="middle">outage flag</text>
+<path class="ed" d="M354.0 244V410.0H826.0V433" marker-end="url(#arr5)"/>
+<text class="el" x="590.0" y="403.0" text-anchor="middle">status</text>
+<path class="ed" d="M354.0 244V591" marker-end="url(#arr5)"/>
+<text class="el" x="363.0" y="273.0">model returns</text>
+<path class="ed" d="M354.0 668V693.0H118.0V716" marker-end="url(#arr5)"/>
+<text class="el" x="236.0" y="686.0" text-anchor="middle">if flagged</text>
+<g class="nd built"><rect x="18.0" y="58" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="84">Đăng bài</text>
+<text class="lb" x="32.0" y="103">Submits a post</text>
+<text class="nt" x="32.0" y="122">Told that checks are delayed</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="184" width="200" height="60" rx="14"/>
+<text class="lb" x="268.0" y="213">Model times out</text>
+<text class="nt" x="268.0" y="232">Applies the outage policy</text>
+</g>
+<g class="nd built"><rect x="18.0" y="294" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="320">Bài viết</text>
+<text class="lb" x="32.0" y="339">Sees “Đang chờ xem xét”</text>
+<text class="nt" x="32.0" y="358">Fail closed, the default</text>
+</g>
+<g class="nd built"><rect x="490.0" y="294" width="200" height="91" rx="10"/>
+<text class="eb" x="504.0" y="320">Hàng chờ kiểm duyệt</text>
+<text class="lb" x="504.0" y="339">Sees an outage notice</text>
+<text class="nt" x="504.0" y="358">Held posts will rescan by</text>
+<text class="nt" x="504.0" y="373">themselves</text>
+</g>
+<g class="nd built"><rect x="726.0" y="435" width="200" height="108" rx="10"/>
+<text class="eb" x="740.0" y="461">Bộ lọc AI</text>
+<text class="lb" x="740.0" y="480">Sees the outage at the</text>
+<text class="lb" x="740.0" y="497">top</text>
+<text class="nt" x="740.0" y="516">Can switch policy; confirmed</text>
+<text class="nt" x="740.0" y="531">and logged</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="593" width="200" height="75" rx="14"/>
+<text class="lb" x="268.0" y="622">Rescans on recovery</text>
+<text class="nt" x="268.0" y="641">Held: published or kept.</text>
+<text class="nt" x="268.0" y="656">Published: hidden if flagged</text>
+</g>
+<g class="nd built"><rect x="18.0" y="718" width="200" height="93" rx="10"/>
+<text class="eb" x="32.0" y="744">Thông báo</text>
+<text class="lb" x="32.0" y="763">Told only if a post is</text>
+<text class="lb" x="32.0" y="780">hidden</text>
+<text class="nt" x="32.0" y="799">With the rule; can appeal</text>
+</g>
+</svg></div>
+<figcaption>Every screen in this flow exists.</figcaption></figure>
+<div class="below"><details><summary>Steps as text</summary><ol class="steps"><li><b>Resident:</b> Submits a post. Told that checks are delayed <span class="scr">(Đăng bài, in the prototype)</span></li><li><b>System:</b> Model times out. Applies the outage policy</li><li><b>Resident:</b> Sees “Đang chờ xem xét”. Fail closed, the default <span class="scr">(Bài viết, in the prototype)</span></li><li><b>Manager:</b> Sees an outage notice. Held posts will rescan by themselves <span class="scr">(Hàng chờ kiểm duyệt, in the prototype)</span></li><li><b>Admin:</b> Sees the outage at the top. Can switch policy; confirmed and logged <span class="scr">(Bộ lọc AI, in the prototype)</span></li><li><b>System:</b> Rescans on recovery. Held: published or kept. Published: hidden if flagged</li><li><b>Resident:</b> Told only if a post is hidden. With the rule; can appeal <span class="scr">(Thông báo, in the prototype)</span></li></ol></details>
+<div class="qs"><h3>Decided</h3><ul><li>The compose page says that checks are delayed while the model is offline.</li><li>Comments in Tin ban quản lý stay held even under fail open, because the blocklist cannot catch impersonation or scams.</li></ul><h3>Open questions</h3><p>None left in this flow.</p></div></div>
+</section><section class="flow" id="invite" aria-labelledby="h-invite">
+<header><span class="n">Flow 6</span><h2 id="h-invite">A new resident is invited</h2><p>The owner adds each resident from the tenant list, the resident sets a password from an emailed link, and the account is deactivated when the tenancy ends.</p></header>
+<figure><div class="scroll" tabindex="0" aria-label="Diagram, scrolls sideways on small screens"><svg class="fl" viewBox="0 0 944 708" width="944" height="708" role="img" aria-label="The owner adds each resident from the tenant list, the resident sets a password from an emailed link, and the account is deactivated when the tenancy ends." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arr6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker></defs>
+<rect class="lane " x="0" y="0" width="236" height="708"/>
+<text class="lt" x="118.0" y="24" text-anchor="middle">Resident</text><text class="lv" x="118.0" y="41" text-anchor="middle">Cư dân</text>
+<rect class="lane alt" x="236" y="0" width="236" height="708"/>
+<text class="lt" x="354.0" y="24" text-anchor="middle">System</text><text class="lv" x="354.0" y="41" text-anchor="middle">Hệ thống</text>
+<rect class="lane " x="472" y="0" width="236" height="708"/>
+<text class="lt" x="590.0" y="24" text-anchor="middle">Manager</text><text class="lv" x="590.0" y="41" text-anchor="middle">Ban quản lý</text>
+<rect class="lane alt" x="708" y="0" width="236" height="708"/>
+<text class="lt" x="826.0" y="24" text-anchor="middle">Admin</text><text class="lv" x="826.0" y="41" text-anchor="middle">Quản trị viên</text>
+<path class="ed" d="M826.0 166V191.0H354.0V214" marker-end="url(#arr6)"/>
+<text class="el" x="590.0" y="184.0" text-anchor="middle">invite</text>
+<path class="ed" d="M354.0 276V301.0H118.0V324" marker-end="url(#arr6)"/>
+<text class="el" x="236.0" y="294.0" text-anchor="middle">email</text>
+<path class="ed" d="M118.0 400V448" marker-end="url(#arr6)"/>
+<text class="el" x="127.0" y="429.0">first visit</text>
+<path class="ed" d="M826.0 166V448" marker-end="url(#arr6)"/>
+<text class="el" x="835.0" y="195.0">staff accounts</text>
+<g class="nd built"><rect x="726.0" y="58" width="200" height="108" rx="10"/>
+<text class="eb" x="740.0" y="84">Mời cư dân</text>
+<text class="lb" x="740.0" y="103">Adds residents from the</text>
+<text class="lb" x="740.0" y="120">tenant list</text>
+<text class="nt" x="740.0" y="139">Or imports the list once at</text>
+<text class="nt" x="740.0" y="154">launch</text>
+</g>
+<g class="nd sys"><rect x="254.0" y="216" width="200" height="60" rx="14"/>
+<text class="lb" x="268.0" y="245">Emails an invitation</text>
+<text class="nt" x="268.0" y="264">A link to set a password</text>
+</g>
+<g class="nd built"><rect x="18.0" y="326" width="200" height="74" rx="10"/>
+<text class="eb" x="32.0" y="352">Đặt mật khẩu</text>
+<text class="lb" x="32.0" y="371">Sets a password, signs</text>
+<text class="lb" x="32.0" y="388">in</text>
+</g>
+<g class="nd built"><rect x="18.0" y="450" width="200" height="76" rx="10"/>
+<text class="eb" x="32.0" y="476">Bảng tin</text>
+<text class="lb" x="32.0" y="495">Sees the welcome card</text>
+<text class="nt" x="32.0" y="514">Once, with three rights</text>
+</g>
+<g class="nd built"><rect x="726.0" y="450" width="200" height="93" rx="10"/>
+<text class="eb" x="740.0" y="476">Vai trò</text>
+<text class="lb" x="740.0" y="495">Gives staff the Manager</text>
+<text class="lb" x="740.0" y="512">role</text>
+<text class="nt" x="740.0" y="531">When needed</text>
+</g>
+<g class="nd built"><rect x="726.0" y="593" width="200" height="91" rx="10"/>
+<text class="eb" x="740.0" y="619">Ngừng truy cập</text>
+<text class="lb" x="740.0" y="638">Deactivates the account</text>
+<text class="nt" x="740.0" y="657">When the tenancy ends; purged</text>
+<text class="nt" x="740.0" y="672">after 90 days</text>
+</g>
+</svg></div>
+<figcaption>Every screen in this flow exists.</figcaption></figure>
+<div class="below"><details><summary>Steps as text</summary><ol class="steps"><li><b>Admin:</b> Adds residents from the tenant list. Or imports the list once at launch <span class="scr">(Mời cư dân, in the prototype)</span></li><li><b>System:</b> Emails an invitation. A link to set a password</li><li><b>Resident:</b> Sets a password, signs in <span class="scr">(Đặt mật khẩu, in the prototype)</span></li><li><b>Resident:</b> Sees the welcome card. Once, with three rights <span class="scr">(Bảng tin, in the prototype)</span></li><li><b>Admin:</b> Gives staff the Manager role. When needed <span class="scr">(Vai trò, in the prototype)</span></li><li><b>Admin:</b> Deactivates the account. When the tenancy ends; purged after 90 days <span class="scr">(Ngừng truy cập, in the prototype)</span></li></ol></details>
+<div class="qs"><h3>Decided</h3><ul><li>Residents join by invitation from the owner; there is no public sign-up form.</li><li>One account per adult, each with an email address.</li><li>Invitation links expire after 3 days; an Admin can send a new one, which cancels the old link. Password reset links expire after 1 day.</li></ul><h3>Open questions</h3><p>None left in this flow.</p></div></div>
+</section>
+<p class="src">Sources: <code>PRODUCT.md</code> (roles, moderation, appeals, outage policy), <code>UI_DESIGN_SPEC.md</code> §4.3–4.4 (manager and admin screens), <code>COMMUNITY_RULES.md</code> (messages and open items), and the prototype <code>prototype/forum.html</code>, which now includes the manager dashboard. Screen names are the Vietnamese labels the interface uses.</p>
+</div>

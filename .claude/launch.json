@@ -1,0 +1,43 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "forum-prototype",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5510",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "prototype"
+      ],
+      "port": 5510,
+      "url": "http://localhost:5510"
+    },
+    {
+      "name": "forum-api",
+      "runtimeExecutable": "make",
+      "runtimeArgs": [
+        "-C",
+        "backend",
+        "run-api"
+      ],
+      "port": 8091,
+      "autoPort": false
+    },
+    {
+      "name": "forum-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev"
+      ],
+      "port": 5180,
+      "url": "http://localhost:5180"
+    }
+  ]
+}

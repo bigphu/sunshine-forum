@@ -1,0 +1,375 @@
+# API của module identity. Sửa spec trước, rồi `make generate` để sinh api/api.gen.go.
+# operationId trùng tên method của handler, JSON dùng snake_case.
+#
+# Xác thực bằng cookie phiên HttpOnly (sunshine_session). Mọi request ghi có cookie phải
+# gửi kèm header X-CSRF-Token lấy từ GET /me hoặc từ phản hồi đăng nhập.
+openapi: 3.0.3
+info:
+  title: Identity API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Sign in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        "200":
+          description: Signed in; the session cookie is set
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Sign out this device
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        "204":
+          description: Signed out; the cookie is cleared
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SetCookie' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/password/forgot:
+    post:
+      operationId: forgotPassword
+      summary: Email a password reset link (always 202, whether or not the email has an account)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+      responses:
+        "202": { description: If the email belongs to an active account, a link is on its way }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/password/inspect:
+    post:
+      operationId: inspectPasswordToken
+      summary: Who an invitation or reset link is for (the token is sent in the body, not the URL)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenRequest' }
+      responses:
+        "200":
+          description: The link is valid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PasswordTokenInfo' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /auth/password/set:
+    post:
+      operationId: setPassword
+      summary: Set a password with an invitation or reset link, then sign in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SetPasswordRequest' }
+      responses:
+        "200":
+          description: Password set and signed in; every other session is revoked
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me:
+    get:
+      operationId: getMe
+      summary: The signed-in account, its permissions and the CSRF token
+      responses:
+        "200":
+          description: The signed-in account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/password:
+    put:
+      operationId: changePassword
+      summary: Change your own password; your other devices are signed out
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangePasswordRequest' }
+      responses:
+        "204": { description: Password changed }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /accounts:
+    get:
+      operationId: listAccounts
+      summary: Every account, staff first, then by name
+      responses:
+        "200":
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: inviteAccount
+      summary: Add a person from the tenant registry and email them an invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InviteRequest' }
+      responses:
+        "201":
+          description: Invited
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /accounts/import:
+    post:
+      operationId: importAccounts
+      summary: Invite residents from the tenant registry in one go (at launch). Rows that fail are reported, not fatal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ImportRequest' }
+      responses:
+        "200":
+          description: What was invited and what was skipped
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportResult' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /accounts/{account_id}/reinvite:
+    post:
+      operationId: reinviteAccount
+      summary: Send a new invitation link; the previous link stops working
+      parameters:
+        - $ref: '#/components/parameters/AccountID'
+      responses:
+        "200":
+          description: Invitation sent
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /accounts/{account_id}/deactivate:
+    post:
+      operationId: deactivateAccount
+      summary: Deactivate an account when the tenancy ends; signs it out everywhere
+      parameters:
+        - $ref: '#/components/parameters/AccountID'
+      responses:
+        "200":
+          description: Deactivated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /accounts/{account_id}/role:
+    put:
+      operationId: setAccountRole
+      summary: Change an account's role; applies on its next request
+      parameters:
+        - $ref: '#/components/parameters/AccountID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SetRoleRequest' }
+      responses:
+        "200":
+          description: Role changed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  parameters:
+    AccountID:
+      name: account_id
+      in: path
+      required: true
+      schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+    SessionCookie:
+      name: sunshine_session
+      in: cookie
+      required: false
+      schema: { type: string }
+
+  headers:
+    SetCookie:
+      schema: { type: string }
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    Role:
+      type: string
+      enum: [resident, manager, admin]
+
+    AccountStatus:
+      type: string
+      enum: [invited, active, deactivated, purged]
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, maxLength: 254 }
+        password: { type: string, maxLength: 200 }
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, maxLength: 254 }
+
+    TokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, maxLength: 200 }
+
+    PasswordTokenInfo:
+      type: object
+      required: [name, email, purpose]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        purpose: { type: string, enum: [invite, reset] }
+
+    SetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token: { type: string, maxLength: 200 }
+        password: { type: string, maxLength: 200 }
+
+    ChangePasswordRequest:
+      type: object
+      required: [current_password, new_password]
+      properties:
+        current_password: { type: string, maxLength: 200 }
+        new_password: { type: string, maxLength: 200 }
+
+    Me:
+      type: object
+      required: [id, email, name, unit, role, permissions, csrf_token]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        email: { type: string }
+        name: { type: string }
+        unit: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        permissions:
+          type: array
+          items: { type: string }
+        csrf_token:
+          type: string
+          description: Send as X-CSRF-Token on every POST, PUT, PATCH and DELETE
+
+    Account:
+      type: object
+      required: [id, email, name, unit, role, status, created_at]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        email: { type: string }
+        name: { type: string }
+        unit: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        last_sign_in_at: { type: string, format: date-time, nullable: true }
+        invite_expires_at: { type: string, format: date-time, nullable: true }
+        deactivated_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    InviteRequest:
+      type: object
+      required: [email, name, role]
+      properties:
+        email: { type: string, maxLength: 254 }
+        name: { type: string, maxLength: 100 }
+        unit: { type: string, maxLength: 20 }
+        role: { $ref: '#/components/schemas/Role' }
+
+    ImportRequest:
+      type: object
+      required: [people]
+      properties:
+        people:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            type: object
+            required: [name, email]
+            properties:
+              name: { type: string, maxLength: 100 }
+              unit: { type: string, maxLength: 20 }
+              email: { type: string, maxLength: 254 }
+
+    ImportResult:
+      type: object
+      required: [invited, skipped]
+      properties:
+        invited: { type: integer }
+        skipped:
+          type: array
+          items:
+            type: object
+            required: [row, email, reason]
+            properties:
+              row: { type: integer, description: 1-based position in the request }
+              email: { type: string }
+              reason: { type: string }
+
+    SetRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: '#/components/schemas/Role' }

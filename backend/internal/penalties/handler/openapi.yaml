@@ -1,0 +1,104 @@
+# API của module penalties. Sửa spec trước, rồi `make generate`.
+openapi: 3.0.3
+info:
+  title: Penalties API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /me/standing:
+    get:
+      operationId: getMyStanding
+      summary: Your confirmed violations and whether your account is read-only
+      responses:
+        "200":
+          description: Standing
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Standing' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /penalties/settings:
+    get:
+      operationId: getPenaltySettings
+      summary: Strike limit, rolling window and read-only duration
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PenaltySettings' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: updatePenaltySettings
+      summary: Change the strike limit, window and read-only duration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PenaltySettings' }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PenaltySettings' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /penalties/read-only:
+    get:
+      operationId: listReadOnlyAccounts
+      summary: Accounts that are read-only now, with the end time and the last rule
+      responses:
+        "200":
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ReadOnlyAccount' }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    Standing:
+      type: object
+      required: [active_strikes, strike_limit, strike_window_days]
+      properties:
+        read_only_until: { type: string, format: date-time, nullable: true }
+        last_rule: { type: integer, nullable: true }
+        active_strikes: { type: integer }
+        strike_limit: { type: integer }
+        strike_window_days: { type: integer }
+
+    ReadOnlyAccount:
+      type: object
+      required: [account_id, ends_at, last_rule]
+      properties:
+        account_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        ends_at: { type: string, format: date-time }
+        last_rule: { type: integer }
+
+    PenaltySettings:
+      type: object
+      required: [strike_limit, strike_window_days, timeout_days]
+      properties:
+        strike_limit: { type: integer, minimum: 1, maximum: 50 }
+        strike_window_days: { type: integer, minimum: 1, maximum: 365 }
+        timeout_days: { type: integer, minimum: 1, maximum: 365 }

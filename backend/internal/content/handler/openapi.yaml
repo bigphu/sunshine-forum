@@ -1,0 +1,353 @@
+# API của module content. Sửa spec trước, rồi `make generate`.
+openapi: 3.0.3
+info:
+  title: Content API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /channels:
+    get:
+      operationId: listChannels
+      summary: The four channels in display order
+      responses:
+        "200":
+          description: Channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Channel' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /posts:
+    get:
+      operationId: listPosts
+      summary: A channel's published posts, or every channel when channel is empty. Pinned posts come on the first page only.
+      parameters:
+        - name: channel
+          in: query
+          required: false
+          schema: { type: string, maxLength: 50 }
+        - name: cursor
+          in: query
+          required: false
+          description: next_cursor from the previous page
+          schema: { type: string, maxLength: 100 }
+      responses:
+        "200":
+          description: A page of posts
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Feed' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createPost
+      summary: Write a post. It is screened first and may be held for review.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostInput' }
+      responses:
+        "201":
+          description: Saved; status says whether it is published or pending
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submitted' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /posts/{post_id}:
+    parameters:
+      - $ref: '#/components/parameters/PostID'
+    get:
+      operationId: getThread
+      summary: A post with its comments (two levels). Unpublished posts are visible to their author only.
+      responses:
+        "200":
+          description: The thread
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Thread' }
+        default: { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updatePost
+      summary: Edit your post; it is screened again
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostEdit' }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submitted' }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: deletePost
+      summary: Delete your post (kept 90 days for appeals, then purged)
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /posts/{post_id}/pin:
+    put:
+      operationId: setPostPinned
+      summary: Pin or unpin a published post (managers)
+      parameters:
+        - $ref: '#/components/parameters/PostID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PinRequest' }
+      responses:
+        "204": { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /posts/{post_id}/comments:
+    post:
+      operationId: createComment
+      summary: Comment on a post, or reply to a comment. Replies to replies attach to the top-level comment.
+      parameters:
+        - $ref: '#/components/parameters/PostID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentInput' }
+      responses:
+        "201":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submitted' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /comments/{comment_id}:
+    parameters:
+      - $ref: '#/components/parameters/CommentID'
+    patch:
+      operationId: updateComment
+      summary: Edit your comment; it is screened again
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentEdit' }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submitted' }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: deleteComment
+      summary: Delete your comment; a placeholder stays if it has replies
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /search:
+    get:
+      operationId: searchPosts
+      summary: Search published posts by title and body; works without diacritics
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 100 }
+      responses:
+        "200":
+          description: Matches, newest first (at most 30)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Post' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /me/pending:
+    get:
+      operationId: listMyPending
+      summary: Your posts and comments waiting for review
+      responses:
+        "200":
+          description: Pending content
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MyPending' }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  parameters:
+    PostID:
+      name: post_id
+      in: path
+      required: true
+      schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+    CommentID:
+      name: comment_id
+      in: path
+      required: true
+      schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    ContentStatus:
+      type: string
+      enum: [published, pending, rejected, removed, auto_deleted, deleted]
+
+    Channel:
+      type: object
+      required: [id, slug, name, description, official_only]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        official_only: { type: boolean, description: Only managers post here; residents comment }
+
+    Author:
+      type: object
+      required: [id, name, unit, staff]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        name: { type: string }
+        unit: { type: string }
+        staff: { type: boolean }
+
+    Post:
+      type: object
+      required: [id, channel, author, official, title, body, status, pinned, edited, comment_count, official_replied, created_at, mine, imitates_official]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        channel: { $ref: '#/components/schemas/Channel' }
+        author: { $ref: '#/components/schemas/Author' }
+        official: { type: boolean, description: Written by management; shows "Chính thức" }
+        title: { type: string }
+        body: { type: string }
+        status: { $ref: '#/components/schemas/ContentStatus' }
+        pinned: { type: boolean }
+        edited: { type: boolean }
+        comment_count: { type: integer }
+        official_replied: { type: boolean, description: Management has replied in the comments }
+        created_at: { type: string, format: date-time }
+        mine: { type: boolean }
+        imitates_official:
+          type: boolean
+          description: A resident post that opens like a management notice; the UI adds a disclaimer
+
+    Comment:
+      type: object
+      required: [id, status, edited, official, created_at, mine, placeholder, body]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        parent_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        author: { $ref: '#/components/schemas/Author' }
+        body: { type: string, description: Empty for placeholders }
+        status: { $ref: '#/components/schemas/ContentStatus' }
+        edited: { type: boolean }
+        official: { type: boolean, description: An official reply from management }
+        created_at: { type: string, format: date-time }
+        mine: { type: boolean }
+        placeholder: { type: boolean, description: Hidden or deleted, kept so its replies make sense }
+
+    Feed:
+      type: object
+      required: [pinned, items]
+      properties:
+        pinned:
+          type: array
+          items: { $ref: '#/components/schemas/Post' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Post' }
+        next_cursor: { type: string }
+
+    Thread:
+      type: object
+      required: [post, comments]
+      properties:
+        post: { $ref: '#/components/schemas/Post' }
+        comments:
+          type: array
+          items: { $ref: '#/components/schemas/Comment' }
+
+    PostInput:
+      type: object
+      required: [channel_id, title, body]
+      properties:
+        channel_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        title: { type: string, maxLength: 1000 }
+        body: { type: string, maxLength: 20000 }
+
+    PostEdit:
+      type: object
+      required: [title, body]
+      properties:
+        title: { type: string, maxLength: 1000 }
+        body: { type: string, maxLength: 20000 }
+
+    CommentInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, maxLength: 20000 }
+        parent_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+
+    CommentEdit:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, maxLength: 20000 }
+
+    PinRequest:
+      type: object
+      required: [pinned]
+      properties:
+        pinned: { type: boolean }
+
+    Submitted:
+      type: object
+      required: [post_id, status]
+      properties:
+        post_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        comment_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        status: { $ref: '#/components/schemas/ContentStatus' }
+
+    PendingComment:
+      type: object
+      required: [comment, post]
+      properties:
+        comment: { $ref: '#/components/schemas/Comment' }
+        post: { $ref: '#/components/schemas/Post' }
+
+    MyPending:
+      type: object
+      required: [posts, comments]
+      properties:
+        posts:
+          type: array
+          items: { $ref: '#/components/schemas/Post' }
+        comments:
+          type: array
+          items: { $ref: '#/components/schemas/PendingComment' }

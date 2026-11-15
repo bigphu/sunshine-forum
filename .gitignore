@@ -1,0 +1,12 @@
+# Secrets và env của máy
+deploy/secrets/
+.env
+backend/.env.local
+
+# Build
+backend/bin/
+backend/tmp/
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+.sqlc.tmp.yml

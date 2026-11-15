@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 384" width="640" height="384" role="img" aria-label="Sunshine pattern">
+<title>Sunshine pattern</title>
+<defs><pattern id="sunshine-dark" width="64" height="64" patternUnits="userSpaceOnUse"><path transform="translate(15.33 15.33) scale(0.33)" d="M47 5A30 30 0 0 0 47 65ZM53 35A30 30 0 0 1 53 95Z" fill="#FFC53D" fill-opacity="0.16"/></pattern></defs>
+<rect width="640" height="384" fill="#0B1324"/>
+<rect width="640" height="384" fill="url(#sunshine-dark)"/>
+</svg>

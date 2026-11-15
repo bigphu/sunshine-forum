@@ -1,0 +1,7 @@
+{{template "layout" .}}
+{{define "body"}}
+<p>Chào {{.Name}},</p>
+<p>Ban quản lý Sunshine Apartment mời bạn tham gia diễn đàn của tòa nhà. Hãy đặt mật khẩu để bắt đầu.</p>
+<p style="padding:8px 0"><a href="{{.Link}}" style="display:inline-block;background:#FFC53D;color:#0E1116;font-weight:600;text-decoration:none;border-radius:999px;padding:12px 22px">Đặt mật khẩu</a></p>
+<p style="color:#5A6472;font-size:14px">Liên kết có hiệu lực trong {{.ExpiresIn}}. Nếu liên kết đã hết hạn, hãy liên hệ văn phòng ban quản lý để nhận liên kết mới.</p>
+{{end}}

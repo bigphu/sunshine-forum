@@ -1,0 +1,11 @@
+Chào {{.Name}},
+
+Có người vừa yêu cầu đặt lại mật khẩu diễn đàn Sunshine Apartment cho email này. Đặt mật
+khẩu mới tại:
+
+{{.Link}}
+
+Liên kết có hiệu lực trong {{.ExpiresIn}}. Nếu bạn không yêu cầu, hãy bỏ qua thư này;
+mật khẩu của bạn vẫn giữ nguyên.
+
+Sunshine Apartment

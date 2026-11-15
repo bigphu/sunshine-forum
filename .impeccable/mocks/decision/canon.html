@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Kiểm duyệt</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111827;--soft:#4B5563;--line:#E5E7EB;--blue:#2563EB;--red:#DC2626;--amber:#B45309}
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font:400 14px/1.5 "Be Vietnam Pro",sans-serif;color:var(--ink);background:#fff;display:grid;grid-template-columns:220px 1fr 430px}
+nav{border-right:1px solid var(--line);padding:18px 12px;background:#F9FAFB}
+nav strong{display:block;font-size:16px;padding:0 10px 18px}
+nav a{display:flex;justify-content:space-between;padding:8px 10px;border-radius:6px;color:var(--soft);font-weight:500}
+nav a.on{background:#EFF6FF;color:var(--blue);font-weight:600}
+main{padding:22px 24px;min-width:0}
+h1{font-size:24px;line-height:1.25;font-weight:700;margin-bottom:14px}
+.filters{display:flex;gap:10px;margin-bottom:14px}
+.filters select,.filters input{height:36px;border:1px solid #D1D5DB;border-radius:6px;padding:0 10px;font:inherit;background:#fff}
+.filters input{width:260px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:13px;font-weight:600;color:var(--soft);padding:9px 8px;border-bottom:1px solid var(--line)}
+td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.on td{background:#EFF6FF}
+.badge{font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;background:#FEF3C7;color:var(--amber);white-space:nowrap}
+.badge.hi{background:#FEE2E2;color:#B91C1C}
+aside{border-left:1px solid var(--line);padding:22px;display:flex;flex-direction:column}
+aside h2{font-size:19px;line-height:1.3;margin-bottom:4px}
+aside .sub{color:var(--soft);margin-bottom:16px}
+aside h3{font-size:14px;margin:14px 0 6px}
+.blur{height:64px;border-radius:6px;background:#E5E7EB;display:grid;place-items:center;font-weight:600;color:var(--soft)}
+.sample{font-size:12px;color:var(--amber);font-weight:600;margin-bottom:12px}
+.foot{margin-top:auto;display:grid;gap:10px}
+.foot select{height:40px;border:1px solid #D1D5DB;border-radius:6px;padding:0 10px;font:inherit}
+.foot div{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{height:40px;border-radius:6px;font:600 14px "Be Vietnam Pro",sans-serif;border:1px solid transparent}
+.pri{background:var(--blue);color:#fff}.dan{background:#fff;border-color:var(--red);color:var(--red)}
+</style></head><body>
+<nav><strong>Sunshine Apartment</strong><a class="on">Hàng chờ <span>6</span></a><a>Xem xét lại <span>2</span></a><a>Báo cáo <span>3</span></a><a>Đã xử lý</a><a>Về diễn đàn</a></nav>
+<main>
+<h1>Hàng chờ kiểm duyệt</h1>
+<div class="filters"><input placeholder="Tìm trong hàng chờ"><select><option>Mọi kênh</option></select><select><option>Mọi mức độ</option></select></div>
+<table><thead><tr><th><input type="checkbox" aria-label="Chọn tất cả"></th><th>Nội dung</th><th>Kênh</th><th>Mức độ</th><th>Thời gian</th></tr></thead><tbody>
+<tr class="on"><td><input type="checkbox" aria-label="Chọn"></td><td>Tiếng ồn sửa chữa sau 22 giờ</td><td>Thảo luận chung</td><td><span class="badge hi">Cao</span></td><td>12 phút</td></tr>
+<tr><td><input type="checkbox" aria-label="Chọn"></td><td>Ai để xe chắn lối hầm B1?</td><td>Thảo luận chung</td><td><span class="badge">Trung bình</span></td><td>38 phút</td></tr>
+<tr><td><input type="checkbox" aria-label="Chọn"></td><td>Thang máy tòa A lại hỏng</td><td>Bảo trì</td><td><span class="badge">Trung bình</span></td><td>1 giờ</td></tr>
+<tr><td><input type="checkbox" aria-label="Chọn"></td><td>Bán tủ lạnh cũ giá tốt</td><td>Marketplace</td><td><span class="badge">Trung bình</span></td><td>3 giờ</td></tr>
+<tr><td><input type="checkbox" aria-label="Chọn"></td><td>Góp ý về phí gửi xe</td><td>Thông báo</td><td><span class="badge">Trung bình</span></td><td>5 giờ</td></tr>
+</tbody></table>
+</main>
+<aside>
+<p class="sample">Dữ liệu và điểm số mẫu</p>
+<h2>Tiếng ồn sửa chữa sau 22 giờ</h2><p class="sub">Cư dân A · 0 vi phạm trong 90 ngày</p>
+<h3>Bình luận trước đó</h3><p>Mấy hôm nay căn hộ phía trên khoan tường đến gần 23 giờ. Ban quản lý có thể nhắc giúp không ạ?</p>
+<h3>Nội dung bị gắn cờ</h3><div class="blur">Bấm để hiện nội dung</div>
+<h3>Vì sao AI gắn cờ</h3><p>hate 0,91 · offensive 0,18. Cần chọn quy tắc 1, 2 hoặc 3.</p>
+<div class="foot"><select><option>Chọn quy tắc trước khi từ chối</option></select><div><button class="dan">Từ chối</button><button class="pri">Cho phép đăng</button></div></div>
+</aside>
+</body></html>

@@ -1,0 +1,7 @@
+{{template "layout" .}}
+{{define "body"}}
+<p>Chào {{.Name}},</p>
+<p>Có người vừa yêu cầu đặt lại mật khẩu diễn đàn Sunshine Apartment cho email này.</p>
+<p style="padding:8px 0"><a href="{{.Link}}" style="display:inline-block;background:#FFC53D;color:#0E1116;font-weight:600;text-decoration:none;border-radius:999px;padding:12px 22px">Đặt mật khẩu mới</a></p>
+<p style="color:#5A6472;font-size:14px">Liên kết có hiệu lực trong {{.ExpiresIn}}. Nếu bạn không yêu cầu, hãy bỏ qua thư này; mật khẩu của bạn vẫn giữ nguyên.</p>
+{{end}}

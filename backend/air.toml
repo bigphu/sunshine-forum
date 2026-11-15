@@ -1,0 +1,23 @@
+# Live reload cho service app trong compose.yml (target dev của Dockerfile)
+root = "."
+tmp_dir = "tmp/app"
+
+[build]
+  cmd = "go build -o ./tmp/app/server ./cmd/server"
+  entrypoint = ["./tmp/app/server"]
+  include_ext = ["go", "sql", "html", "txt", "yaml"]
+  exclude_dir = ["tmp", "bin", "vendor", ".git"]
+  exclude_regex = ["_test\\.go$"]
+  # Bind mount trên Windows/macOS không phát sự kiện file: dùng polling
+  poll = true
+  poll_interval = 500
+  delay = 1500
+  send_interrupt = true
+  kill_delay = "3s"
+  stop_on_error = true
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true

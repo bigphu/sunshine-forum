@@ -1,0 +1,11 @@
+Chào {{.Name}},
+
+Ban quản lý Sunshine Apartment mời bạn tham gia diễn đàn của tòa nhà. Hãy đặt mật khẩu
+để bắt đầu:
+
+{{.Link}}
+
+Liên kết có hiệu lực trong {{.ExpiresIn}}. Nếu liên kết đã hết hạn, hãy liên hệ văn phòng
+ban quản lý để nhận liên kết mới.
+
+Sunshine Apartment

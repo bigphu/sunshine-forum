@@ -1,0 +1,288 @@
+# API của module screening. Sửa spec trước, rồi `make generate`.
+# Điểm và ngưỡng là số 0–1; giao diện hiển thị trên thang /100.
+openapi: 3.0.3
+info:
+  title: Screening API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+security:
+  - sessionCookie: []
+
+paths:
+  /rules:
+    get:
+      operationId: listRules
+      summary: The seven community rules (public)
+      security: []
+      responses:
+        "200":
+          description: Rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Rule' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/check:
+    post:
+      operationId: checkDraft
+      summary: Check a draft before sending (FR-3.1). The draft is not stored and warnings never count as violations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckRequest' }
+      responses:
+        "200":
+          description: Warnings for the draft
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckResult' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/status:
+    get:
+      operationId: getScreeningStatus
+      summary: Whether the model answers, so the composer can say checks are delayed
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScreeningStatus' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/blocklist:
+    get:
+      operationId: listBlocklist
+      summary: Blocklist terms; the browser checks them while typing
+      responses:
+        "200":
+          description: Terms
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/BlockEntry' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: addBlocklistTerm
+      summary: Add a term with the rule it belongs to
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddBlockRequest' }
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BlockEntry' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/blocklist/{term_id}:
+    delete:
+      operationId: deleteBlocklistTerm
+      summary: Remove a term
+      parameters:
+        - name: term_id
+          in: path
+          required: true
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+      responses:
+        "204": { description: Removed }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/settings:
+    get:
+      operationId: getScreeningSettings
+      summary: Thresholds, auto-delete, outage policy and per-channel thresholds
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScreeningSettings' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: updateScreeningSettings
+      summary: Change thresholds and the outage policy; applies without a restart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSettingsRequest' }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScreeningSettings' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/channels/{channel_id}/threshold:
+    put:
+      operationId: setChannelThreshold
+      summary: Set or clear a channel's hold threshold (null uses the global one)
+      parameters:
+        - name: channel_id
+          in: path
+          required: true
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChannelThresholdRequest' }
+      responses:
+        "204": { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /screening/stand-in:
+    put:
+      operationId: setStandInOffline
+      summary: Simulate a model outage (stand-in scorer only), to try the outage policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StandInRequest' }
+      responses:
+        "204": { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sunshine_session
+
+  responses:
+    Problem:
+      description: Error (application/problem+json)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../../api/common.yaml#/components/schemas/Problem' }
+
+  schemas:
+    Rule:
+      type: object
+      required: [number, title, text]
+      properties:
+        number: { type: integer }
+        title: { type: string }
+        text: { type: string }
+
+    CheckRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, maxLength: 20000 }
+        channel_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+
+    Sentence:
+      type: object
+      required: [start, end, top_label, score]
+      properties:
+        start: { type: integer, description: Character offset }
+        end: { type: integer }
+        top_label: { type: string }
+        score: { type: number, format: double }
+
+    Warning:
+      type: object
+      required: [message, sentences]
+      properties:
+        rule: { type: integer, nullable: true }
+        message: { type: string }
+        sentences:
+          type: array
+          items: { $ref: '#/components/schemas/Sentence' }
+
+    CheckResult:
+      type: object
+      required: [warnings, model_offline]
+      properties:
+        warnings:
+          type: array
+          items: { $ref: '#/components/schemas/Warning' }
+        model_offline: { type: boolean }
+
+    ScreeningStatus:
+      type: object
+      required: [model_online, model_version, stand_in]
+      properties:
+        model_online: { type: boolean }
+        model_version: { type: string }
+        stand_in: { type: boolean, description: The stand-in scorer gives sample scores }
+
+    BlockEntry:
+      type: object
+      required: [id, term, rule, created_at]
+      properties:
+        id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        term: { type: string }
+        rule: { type: integer }
+        created_by: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        created_at: { type: string, format: date-time }
+
+    AddBlockRequest:
+      type: object
+      required: [term, rule]
+      properties:
+        term: { type: string, minLength: 1, maxLength: 100 }
+        rule: { type: integer, minimum: 1, maximum: 7 }
+
+    OutagePolicy:
+      type: string
+      enum: [fail_closed, fail_open]
+
+    ChannelThreshold:
+      type: object
+      required: [channel_id, hold_threshold]
+      properties:
+        channel_id: { $ref: '../../../api/common.yaml#/components/schemas/ID' }
+        hold_threshold: { type: number, format: double }
+        auto_delete_threshold: { type: number, format: double, nullable: true, description: Null uses the global one }
+
+    ScreeningSettings:
+      type: object
+      required: [hold_threshold, auto_delete_enabled, auto_delete_threshold, outage_policy, stand_in, stand_in_offline, channel_thresholds, updated_at]
+      properties:
+        hold_threshold: { type: number, format: double }
+        auto_delete_enabled: { type: boolean }
+        auto_delete_threshold: { type: number, format: double }
+        outage_policy: { $ref: '#/components/schemas/OutagePolicy' }
+        stand_in: { type: boolean }
+        stand_in_offline: { type: boolean }
+        channel_thresholds:
+          type: array
+          items: { $ref: '#/components/schemas/ChannelThreshold' }
+        updated_at: { type: string, format: date-time }
+
+    UpdateSettingsRequest:
+      type: object
+      required: [hold_threshold, auto_delete_enabled, auto_delete_threshold, outage_policy]
+      properties:
+        hold_threshold: { type: number, format: double, minimum: 0.01, maximum: 0.99 }
+        auto_delete_enabled: { type: boolean }
+        auto_delete_threshold: { type: number, format: double, minimum: 0.01, maximum: 0.99 }
+        outage_policy: { $ref: '#/components/schemas/OutagePolicy' }
+
+    ChannelThresholdRequest:
+      type: object
+      required: [hold_threshold]
+      description: hold_threshold null removes the channel's own thresholds
+      properties:
+        hold_threshold: { type: number, format: double, minimum: 0.01, maximum: 0.99, nullable: true }
+        auto_delete_threshold: { type: number, format: double, minimum: 0.01, maximum: 0.99, nullable: true }
+
+    StandInRequest:
+      type: object
+      required: [offline]
+      properties:
+        offline: { type: boolean }
