@@ -78,10 +78,10 @@ const shown = computed(() => {
             <option v-for="(t, n) in RULE_SHORT" :key="n" :value="Number(n)">Quy tắc {{ n }}. {{ t }}</option>
           </select>
         </div>
-        <button class="btn pri" type="submit" :aria-busy="busy"><Icon name="plus" />Thêm</button>
+        <button class="btn pri" type="submit" :aria-busy="busy">Thêm</button>
       </form>
       <div id="kw-e" aria-live="polite"><p v-if="err" class="err">{{ err }}</p></div>
-      <p class="hint">Khớp cả từ, không phân biệt hoa thường. Nội dung khớp bị giữ lại và gắn quy tắc của từ khóa. Có hiệu lực ngay.</p>
+      <p class="hint">Khớp cả từ, không phân biệt hoa thường.</p>
     </section>
 
     <section class="card" aria-labelledby="kwt-h">
@@ -116,7 +116,7 @@ const shown = computed(() => {
             <td><b class="kwt">{{ b.term }}</b></td>
             <td data-l="Quy tắc">Quy tắc {{ b.rule }}<small>{{ RULE_SHORT[b.rule] }}</small></td>
             <td data-l="Thêm bởi">{{ byName(b.created_by) }}<small>{{ dm(b.created_at) }}</small></td>
-            <td class="tac"><button class="btn" :aria-label="`Xóa từ khóa ${b.term}`" @click="remove(b)">Xóa</button></td>
+            <td class="tac"><button class="btn ghost" :aria-label="`Xóa từ khóa ${b.term}`" @click="remove(b)">Xóa</button></td>
           </tr>
         </tbody>
       </table>

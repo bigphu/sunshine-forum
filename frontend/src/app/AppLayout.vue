@@ -90,7 +90,7 @@ const roleLabel = computed(() => (auth.me?.role === 'admin' ? 'Quản trị viê
       <button type="submit">Tìm</button>
     </form>
     <div class="tb-r">
-      <button v-if="!auth.readOnlyUntil" class="btn pri tb-p" @click="compose"><Icon name="plus" />Đăng bài</button>
+      <button v-if="!auth.readOnlyUntil" class="btn pri tb-p" @click="compose">Đăng bài</button>
       <RouterLink class="ib tb-s" to="/tim" aria-label="Tìm kiếm"><Icon name="search" /></RouterLink>
       <RouterLink class="ib tb-b" to="/thong-bao" :aria-label="`Thông báo${unread ? `, ${unread} mới` : ''}`">
         <Icon name="bell" /><span v-if="unread" class="dot" aria-hidden="true">{{ unread }}</span>
@@ -144,13 +144,13 @@ const roleLabel = computed(() => (auth.me?.role === 'admin' ? 'Quản trị viê
             :to="`/kenh/${c.slug}`"
             :aria-current="current(`/kenh/${c.slug}`)"
           >
-            <Icon :name="CHANNEL_ICON[c.slug] ?? 'msg'" />{{ c.name }}
+            <Icon :name="CHANNEL_ICON[c.slug] ?? 'msg'" /><span class="sb-x" :title="c.name">{{ c.name }}</span>
           </RouterLink>
         </div>
         <div class="sb-h"><Icon name="shield" />Minh bạch</div>
         <div class="sb-g">
           <RouterLink class="sb-i" to="/quy-tac" :aria-current="route.path.startsWith('/quy-tac') ? 'page' : undefined">
-            <Icon name="book" />Bảy quy tắc
+            <Icon name="book" /><span class="sb-x">Bảy quy tắc</span>
           </RouterLink>
           <RouterLink
             v-if="!auth.isStaff"
@@ -158,7 +158,7 @@ const roleLabel = computed(() => (auth.me?.role === 'admin' ? 'Quản trị viê
             to="/yeu-cau"
             :aria-current="route.path.startsWith('/yeu-cau') || route.path.startsWith('/xem-xet-lai') ? 'page' : undefined"
           >
-            <Icon name="inbox" />Yêu cầu của tôi
+            <Icon name="inbox" /><span class="sb-x">Yêu cầu của tôi</span>
           </RouterLink>
         </div>
         <template v-if="auth.isAdmin">
@@ -171,7 +171,7 @@ const roleLabel = computed(() => (auth.me?.role === 'admin' ? 'Quản trị viê
               :to="`/quan-tri/${id}`"
               :aria-current="route.path.startsWith(`/quan-tri/${id}`) ? 'page' : undefined"
             >
-              <Icon :name="i" />{{ t }}
+              <Icon :name="i" /><span class="sb-x" :title="t">{{ t }}</span>
             </RouterLink>
           </div>
         </template>

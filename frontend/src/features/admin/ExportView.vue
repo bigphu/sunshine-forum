@@ -72,17 +72,17 @@ async function remove(x: ExportItem) {
             <label class="rd"><input v-model="purpose" type="radio" name="xpu" value="evaluation" /><span>Đánh giá<small>Kiểm tra độ chính xác trước khi dùng mô hình mới.</small></span></label>
           </fieldset>
           <div class="row-a">
-            <button class="btn pri" type="submit" :disabled="!list.data.value.eligible" :aria-busy="busy"><Icon name="download" />Tạo bản xuất</button>
+            <button class="btn pri" type="submit" :disabled="!list.data.value.eligible" :aria-busy="busy">Tạo bản xuất</button>
           </div>
         </form>
       </section>
-      <section class="card" aria-labelledby="xl-h">
+      <section class="psec" aria-labelledby="xl-h">
         <h2 id="xl-h">Bản xuất đang lưu</h2>
         <ul v-if="list.data.value.exports.length" class="rqs">
           <li v-for="x in list.data.value.exports" :key="x.id" class="exr">
             <span><b>Bản xuất {{ dm(x.created_at) }} · {{ PURPOSE[x.purpose] }}</b><small>{{ x.item_count }} mục · Tự xóa ngày {{ dm(x.delete_after) }}</small></span>
             <span class="exa">
-              <button class="btn" @click="download(x)"><Icon name="download" />Tải xuống</button>
+              <button class="btn ghost" @click="download(x)">Tải xuống</button>
               <button class="btn ghost" @click="remove(x)">Xóa ngay</button>
             </span>
           </li>

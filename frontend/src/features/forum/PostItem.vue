@@ -37,7 +37,7 @@ const canRemove = computed(() => auth.can('moderation.remove') && !props.post.mi
 
 <template>
   <li>
-    <article class="it">
+    <article class="it" :class="{ notice: post.official }">
       <p v-if="post.pinned" class="ctx"><Icon name="pin" />Đã ghim</p>
       <PostHead :post="post" />
       <ImitationNote v-if="post.imitates_official" />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import AppDialog from '@/components/AppDialog.vue'
 import Icon from '@/components/Icon.vue'
 import LoadError from '@/components/LoadError.vue'
@@ -9,6 +9,7 @@ import { keys, useChannels, useScreeningStatus } from '@/lib/queries'
 import { toast } from '@/lib/toast'
 import type { PenaltySettings, ScreeningSettings } from '@/lib/types'
 import AdminPage from './AdminPage.vue'
+import ThresholdSlider from './ThresholdSlider.vue'
 import { adminKeys, usePenaltySettings, useScreeningSettings } from './queries'
 
 // Bộ lọc AI (FR-4, UC-20): ngưỡng chung và theo kênh, tự động xóa (mặc định tắt), chính sách
@@ -41,18 +42,29 @@ function fromServer(s: ScreeningSettings, p: PenaltySettings): Draft {
 }
 const base = ref<Draft | null>(null)
 const draft = ref<Draft | null>(null)
+// v-model trên input type=number trả về số; so sánh theo chuỗi
+const str = (v: unknown) => String(v ?? '').trim()
+// Số kênh đang có ngưỡng riêng (ô giữ lại không trống)
+const chOpen = ref(false)
+// Kênh có ngưỡng riêng khi ô giữ lại có giá trị; bật thì bắt đầu từ ngưỡng chung, tắt thì xóa
+const own = (id: string) => str(draft.value?.ch[id]?.[0]) !== ''
+function setOwn(id: string, on: boolean) {
+  const d = draft.value
+  if (!d) return
+  d.ch[id] = on ? [d.hold, d.delOn ? d.del : ''] : ['', '']
+}
+const overrides = computed(() => Object.values(draft.value?.ch ?? {}).filter(([h]) => str(h) !== '').length)
 watch(
   [() => settings.data.value, () => penalties.data.value, pubChannels],
   ([s, p]) => {
     if (!s || !p || !pubChannels.value.length) return
     base.value = fromServer(s, p)
     draft.value = JSON.parse(JSON.stringify(base.value))
+    chOpen.value = overrides.value > 0
   },
   { immediate: true },
 )
 
-// v-model trên input type=number trả về số; so sánh theo chuỗi
-const str = (v: unknown) => String(v ?? '').trim()
 const diffs = computed(() => {
   const a = base.value
   const b = draft.value
@@ -119,7 +131,10 @@ async function save() {
   const errs = validate()
   if (errs.length) {
     err.value = `Chưa lưu được: ${errs.join('; ')}.`
-    document.getElementById(`cf-${[...bad.value][0]}`)?.focus()
+    const first = [...bad.value][0]
+    if (first.startsWith('ch.')) chOpen.value = true
+    await nextTick()
+    document.getElementById(`cf-${first}`)?.focus()
     return
   }
   const d = draft.value!
@@ -201,7 +216,7 @@ const inv = (k: string) => (bad.value.has(k) ? 'true' : undefined)
 </script>
 
 <template>
-  <AdminPage title="Bộ lọc AI" lead="Thay đổi có hiệu lực ngay sau khi lưu, không cần khởi động lại.">
+  <AdminPage title="Bộ lọc AI" lead="Thay đổi có hiệu lực ngay sau khi lưu.">
     <LoadError v-if="settings.isError.value || penalties.isError.value" title="Không tải được cấu hình bộ lọc" @retry="(settings.refetch(), penalties.refetch())" />
     <p v-else-if="!draft" role="status">Đang tải…</p>
     <template v-else>
@@ -221,6 +236,54 @@ const inv = (k: string) => (bad.value.has(k) ? 'true' : undefined)
         </label>
       </section>
 
+      <section class="card" aria-labelledby="thg-h">
+        <h2 id="thg-h">Khi nào nội dung bị giữ lại</h2>
+        <div class="thr" aria-hidden="true" :style="{ '--a': strip.a + '%', '--b': strip.b - strip.a + '%' }">
+          <span class="t0">Đăng ngay</span><span class="t1">Giữ lại</span><span v-if="draft.delOn" class="t2">Tự động xóa</span>
+        </div>
+        <p id="thr-l" class="hint thr-l">{{ stripText }}</p>
+        <div class="thg">
+          <ThresholdSlider id="cf-hold" v-model="draft.hold" label="Giữ lại từ điểm" :invalid="!!inv('hold')" />
+          <ThresholdSlider v-if="draft.delOn" id="cf-del" v-model="draft.del" label="Tự động xóa từ điểm" :invalid="!!inv('del')" />
+        </div>
+        <label class="tg">
+          <span
+            ><b>Tự động xóa</b
+            ><small>Mặc định tắt: nội dung có điểm cao được giữ lại để quản lý xem xét. Chỉ nên bật sau khi đã kiểm tra độ chính xác của mô hình trên nội dung của tòa nhà.</small></span
+          >
+          <input v-model="draft.delOn" type="checkbox" role="switch" />
+        </label>
+        <p class="hint">{{ draft.delOn ? 'Tự động xóa chỉ áp dụng cho nhãn offensive (Quy tắc 4). ' : '' }}Nhãn hate luôn được giữ lại để quản lý chọn quy tắc.</p>
+        <details class="chd" :open="chOpen" @toggle="chOpen = ($event.target as HTMLDetailsElement).open">
+          <summary>
+            <Icon name="chev" /><span>Ngưỡng riêng theo kênh</span>
+            <span class="pill mu">{{ overrides ? `${overrides} kênh có ngưỡng riêng` : 'Đang dùng ngưỡng chung' }}</span>
+          </summary>
+          <ul class="chl">
+            <li v-for="c in pubChannels" :key="c.id">
+              <label class="chk">
+                <input type="checkbox" :checked="own(c.id)" @change="setOwn(c.id, ($event.target as HTMLInputElement).checked)" />
+                <span
+                  ><b>{{ c.name }}</b
+                  ><small>{{ own(c.id) ? 'Ngưỡng riêng' : `Theo ngưỡng chung: giữ lại từ ${draft.hold}${draft.delOn ? `, tự động xóa từ ${draft.del}` : ''}` }}</small></span
+                >
+              </label>
+              <div v-if="own(c.id)" class="thg">
+                <ThresholdSlider :id="`cf-ch.${c.id}.0`" v-model="draft.ch[c.id][0]" :label="`Giữ lại từ điểm, ${c.name}`" :invalid="!!inv(`ch.${c.id}.0`)" />
+                <ThresholdSlider
+                  v-if="draft.delOn"
+                  :id="`cf-ch.${c.id}.1`"
+                  v-model="draft.ch[c.id][1]"
+                  :label="`Tự động xóa từ điểm, ${c.name}`"
+                  :invalid="!!inv(`ch.${c.id}.1`)"
+                />
+              </div>
+            </li>
+          </ul>
+          <p class="hint">Ở Tin ban quản lý, ngưỡng áp dụng cho cả bình luận của cư dân.</p>
+        </details>
+      </section>
+
       <section class="card" aria-labelledby="pol-h">
         <h2 id="pol-h">Khi bộ lọc AI lỗi</h2>
         <fieldset :key="policyKey" class="rul">
@@ -235,60 +298,9 @@ const inv = (k: string) => (bad.value.has(k) ? 'true' : undefined)
             /><span>{{ v[0] }}<small>{{ v[1] }}</small></span>
           </label>
         </fieldset>
-        <p class="hint">Luôn áp dụng: bình luận trong Tin ban quản lý vẫn bị giữ lại. Đổi chính sách cần xác nhận và được ghi vào nhật ký kiểm tra.</p>
+        <p class="hint">Bình luận trong Tin ban quản lý luôn bị giữ lại khi bộ lọc lỗi.</p>
       </section>
 
-      <section class="card" aria-labelledby="thg-h">
-        <h2 id="thg-h">Ngưỡng chung</h2>
-        <p>Áp dụng cho mọi kênh chưa có ngưỡng riêng.</p>
-        <div class="thr" aria-hidden="true" :style="{ '--a': strip.a + '%', '--b': strip.b - strip.a + '%' }">
-          <span class="t0">Đăng ngay</span><span class="t1">Giữ lại</span><span v-if="draft.delOn" class="t2">Tự động xóa</span>
-        </div>
-        <p id="thr-l" class="hint thr-l">{{ stripText }}</p>
-        <div class="thg">
-          <div>
-            <label class="lb" for="cf-hold">Giữ lại từ điểm</label>
-            <div class="nu"><input id="cf-hold" v-model="draft.hold" class="field nin" type="number" inputmode="numeric" min="0" max="100" :aria-invalid="inv('hold')" /><span>/100</span></div>
-          </div>
-          <div v-if="draft.delOn">
-            <label class="lb" for="cf-del">Tự động xóa từ điểm</label>
-            <div class="nu"><input id="cf-del" v-model="draft.del" class="field nin" type="number" inputmode="numeric" min="0" max="100" :aria-invalid="inv('del')" /><span>/100</span></div>
-          </div>
-        </div>
-        <label class="tg">
-          <span
-            ><b>Tự động xóa</b
-            ><small>Mặc định tắt: nội dung có điểm cao được giữ lại để quản lý xem xét. Chỉ nên bật sau khi đã kiểm tra độ chính xác của mô hình trên nội dung của tòa nhà.</small></span
-          >
-          <input v-model="draft.delOn" type="checkbox" role="switch" />
-        </label>
-        <p class="hint">{{ draft.delOn ? 'Tự động xóa chỉ áp dụng cho nhãn offensive (Quy tắc 4). ' : '' }}Nhãn hate luôn được giữ lại để quản lý chọn quy tắc.</p>
-      </section>
-
-      <section class="card" aria-labelledby="tch-h">
-        <h2 id="tch-h">Theo kênh</h2>
-        <table class="tbl">
-          <thead>
-            <tr><th scope="col">Kênh</th><th scope="col">Giữ lại từ</th><th v-if="draft.delOn" scope="col">Tự động xóa từ</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in pubChannels" :key="c.id">
-              <th scope="row" data-l="Kênh">{{ c.name }}</th>
-              <td data-l="Giữ lại từ">
-                <div class="nu">
-                  <input :id="`cf-ch.${c.id}.0`" v-model="draft.ch[c.id][0]" class="field nin" type="number" inputmode="numeric" min="0" max="100" :placeholder="String(draft.hold)" :aria-label="`Giữ lại từ, ${c.name}`" :aria-invalid="inv(`ch.${c.id}.0`)" /><span>/100</span>
-                </div>
-              </td>
-              <td v-if="draft.delOn" data-l="Tự động xóa từ">
-                <div class="nu">
-                  <input :id="`cf-ch.${c.id}.1`" v-model="draft.ch[c.id][1]" class="field nin" type="number" inputmode="numeric" min="0" max="100" :placeholder="String(draft.del)" :aria-label="`Tự động xóa từ, ${c.name}`" :aria-invalid="inv(`ch.${c.id}.1`)" /><span>/100</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="hint">Để trống để dùng ngưỡng chung. Ở Tin ban quản lý, ngưỡng áp dụng cho cả bình luận của cư dân và bài chính thức.</p>
-      </section>
 
       <section class="card" aria-labelledby="ro-h">
         <h2 id="ro-h">Tạm chỉ được đọc</h2>

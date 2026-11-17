@@ -46,6 +46,9 @@ export const weekdayDm = (v: string | Date) => {
   return `${DAYS[p.wd]} ${p.day}/${p.month}`
 }
 
+// Ngày đầy đủ cho thông báo của ban quản lý: "Thứ Bảy, 21/11/2026"
+export const noticeDate = (v: string | Date) => `${DAYS[parts(toDate(v)).wd]}, ${dmy(v)}`
+
 export const weekdayShort = (v: string | Date) => DAYS_SHORT[parts(toDate(v)).wd]
 
 // Mô tả đầy đủ cho title của <time>

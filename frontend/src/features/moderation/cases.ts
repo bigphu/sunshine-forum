@@ -73,9 +73,8 @@ export function decisionHint(c: Case): string {
   const s = c.item.screening
   if (c.appeal) return 'Đây là quyết định cuối cùng. Nếu chấp nhận, nội dung được khôi phục và lần vi phạm được gỡ bỏ.'
   if (s.label === 'hate') return 'Nếu từ chối, bạn cần chọn Quy tắc 1, 2 hoặc 3.'
-  if (s.reason === 'language' || s.reason === 'outage')
-    return 'Nội dung đang chờ này chưa phải là vi phạm. Nếu không có vấn đề, hãy cho phép đăng.'
-  return 'Nếu từ chối, người viết nhận tin nhắn nêu quy tắc và có thể yêu cầu xem xét lại.'
+  // Các trường hợp khác tự rõ qua nút và tin nhắn xem trước: không thêm câu giải thích
+  return ''
 }
 
 // Quy tắc gợi ý; với nội dung thù ghét chỉ được chọn Quy tắc 1, 2 hoặc 3 (FR-5.2)

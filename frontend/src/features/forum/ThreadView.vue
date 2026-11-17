@@ -9,7 +9,6 @@ import PendingNote from '@/components/PendingNote.vue'
 import ReadOnlyCard from '@/components/ReadOnlyCard.vue'
 import { api, ApiError, errorText, unwrap } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth'
-import { PENDING_TEXT } from '@/lib/forum'
 import { keys } from '@/lib/queries'
 import { toast } from '@/lib/toast'
 import type { Comment, Submitted } from '@/lib/types'
@@ -53,15 +52,21 @@ onMounted(async () => {
 })
 
 const replyTo = ref<string | null>(null)
-const pendingNote = ref<string | null>(null)
 function onReply(to: Comment) {
   replyTo.value = to.parent_id ?? to.id
 }
-function changed(res?: Submitted) {
-  if (res?.status === 'pending' && res.comment_id) pendingNote.value = res.comment_id
-  else if (res?.status === 'published' && res.comment_id) toast('Đã gửi bình luận.')
-  q.refetch()
+// Sau khi gửi: đưa người viết tới bình luận của mình. Bình luận bị giữ lại tự mang dòng
+// "đang chờ xem xét", nên không lặp lại thông báo đó ở chỗ khác.
+async function changed(res?: Submitted) {
+  await q.refetch()
   qc.invalidateQueries({ queryKey: ['feed'] })
+  if (!res?.comment_id) return
+  toast(res.status === 'pending' ? 'Bình luận đang chờ ban quản lý xem xét.' : 'Đã gửi bình luận.')
+  highlight.value = res.comment_id
+  await nextTick()
+  const el = document.getElementById(`c-${res.comment_id}`)
+  el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  el?.focus({ preventScroll: true })
 }
 
 const removing = ref<{ type: 'post' | 'comment'; id: string; author: string } | null>(null)
@@ -134,7 +139,7 @@ const statusText: Record<string, string> = {
           <div v-if="fresh && post.status === 'published'" class="okn" role="status">
             <Icon name="check" /><span>Đã đăng trong kênh {{ post.channel.name }}. Bạn sẽ nhận thông báo khi có người bình luận.</span>
           </div>
-          <article class="card post">
+          <article class="card post" :class="{ notice: post.official }">
             <PostHead :post="post" />
             <ImitationNote v-if="post.imitates_official" />
             <h1 id="focus-t" class="pt" tabindex="-1">{{ post.title }}</h1>
@@ -160,8 +165,8 @@ const statusText: Record<string, string> = {
               </button>
             </div>
             <div v-if="post.mine && post.status === 'pending'" class="row-a">
-              <RouterLink class="btn" :to="`/sua/${post.id}`"><Icon name="pen" />Sửa bài</RouterLink>
-              <button class="btn ghost" @click="deleting = 'post'"><Icon name="trash" />Xóa</button>
+              <RouterLink class="btn" :to="`/sua/${post.id}`">Sửa bài</RouterLink>
+              <button class="btn ghost" @click="deleting = 'post'">Xóa</button>
             </div>
           </article>
 
@@ -175,12 +180,9 @@ const statusText: Record<string, string> = {
               :channel-id="post.channel.id"
               label="Viết bình luận"
               submit-label="Gửi bình luận"
+              compact
               @done="changed"
             />
-            <div v-if="pendingNote" class="pend rcp" role="status">
-              <Icon name="clock" /><span>{{ PENDING_TEXT }} Bạn sẽ nhận được thông báo khi có quyết định.</span>
-              <div class="rcp-a"><button type="button" class="btn ghost" @click="pendingNote = null">Đóng</button></div>
-            </div>
             <section class="cs" aria-labelledby="ch">
               <div class="cs-h"><h2 id="ch">{{ post.comment_count }} bình luận</h2></div>
               <ul v-if="threads.length">

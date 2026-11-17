@@ -173,7 +173,7 @@ Density is a reading forum, with one text size for everyone: root 100%, body 17p
 - One family, Be Vietnam Pro, with strong titles over quiet grey metadata.
 - Hairline-divided lists on a flat page; cards only where something is filled in or decided.
 - Management posts carry the half-disc mark and "Chính thức", and can be pinned.
-- Vivid avatars and colour-coded decision icons make people and outcomes easy to tell apart.
+- Quiet one-tone avatars for residents, the gold mark for management, and colour-coded decision icons for outcomes.
 - Light only and one text size for the first release.
 
 ## Colors
@@ -202,7 +202,7 @@ One warm brand signal against a cool ink scale, with a small set of project addi
 - **Alarm Red** (`danger`): errors, the reject icon disc, "Gửi và từ chối", "Gửi và gỡ", and the Mức cao icon. `danger-soft` tints the reject button on hover or when open.
 - **Approve Teal** (`approve`): the approve, allow or accept icon disc only. `approve-soft` tints that button on hover or when open.
 - **Highlight Blue** (`highlight`, `highlight-line`): a deep-linked comment, a highlighted rule, and search hits. Its text partner is `warn-text`. It is a "you are here" marker, never a signal of importance.
-- **Avatar Set**: four saturated hues (blue, teal, rust, violet) with white initials. The hue is picked by hashing the name.
+- **Avatar Set**: retired on 2026-11-17. Resident avatars are one quiet tone (band fill, edge ring, ink initial); the four hue tokens remain only for charts if needed.
 
 ### Named Rules
 **The One Warm Signal Rule.** Sun gold means "act here". It never decorates empty space, and text on it is always ink-950.
@@ -220,7 +220,7 @@ One warm brand signal against a cool ink scale, with a small set of project addi
 The root is 100%, so 1rem is 16px and body text 17px. Bottom-navigation labels are at least 13px.
 
 ### Hierarchy
-- **Display** (800, 2.75rem / 3.25rem, -0.025em): channel banner titles only, white on the ink artwork. Short channel banners use 2.25rem.
+- **Display** (800, 2.75rem / 3.25rem, -0.025em): the Bảng tin banner title only, white on the ink artwork. Channel pages use a plain Headline title.
 - **Headline** (700, 2.125rem / 2.625rem, -0.02em): page titles ("Hàng chờ kiểm duyệt", "Quy tắc cộng đồng"). The thread title is 1.875rem.
 - **Title** (700, 1.3125rem / 1.8125rem): post titles in the feed, card headings (1.25rem), and case titles (1.375rem).
 - **Body** (400, 1.0625rem / 1.625rem): posts, comments and forms. Flagged content in a moderation case is shown larger (1.1875rem / 1.875rem). Page prose is capped at 58ch.
@@ -267,7 +267,7 @@ Soft, friendly geometry: pills for anything you press, 16px rounded cards, 26px 
 - **Shape:** full pills (999px), 44px tall, 18px side padding, 600 weight. They press down to 98% scale.
 - **Primary:** sun gold with ink text, one per area ("Đăng bài", "Gửi bình luận"). Hover is `sun-600`.
 - **Secondary:** band fill with a 1.5px `edge` outline. Hover blends toward field grey.
-- **Ghost:** no fill, link colour ("Hủy", "Đặt lại").
+- **Ghost (text button):** no fill and no pill, link colour, 10px radius, underline on hover, still 44px tall. Every secondary action that is not a form's own control uses it: "Hủy", "Đặt lại", "Đăng xuất", table row actions ("Đổi vai trò", "Ngừng truy cập", "Xóa", "Tải xuống") and onward links ("Xem yêu cầu của tôi").
 - **Danger:** alarm red, only on a final irreversible send ("Gửi và từ chối", "Gửi và gỡ").
 - **Toggled / on:** an ink fill with page-colour text (an active filter, "Chọn nhiều", an open rejection).
 - **Decision pair:** two equal 48px pills on the card colour, each led by a 30px filled icon disc (a teal check, a red cross). They tint toward teal or red on hover and when expanded.
@@ -293,7 +293,7 @@ Soft, friendly geometry: pills for anything you press, 16px rounded cards, 26px 
 - **Top bar:** frosted glass with the logo, a centred grey pill search, and 44px circular icon buttons (bell with a sun count dot, avatar with a ring).
 - **Sidebar:** 44px rows with 20px icons; the current row has a band fill and 700 weight. It ends with the prototype role switch, and its scrollbar shows only on hover or focus.
 - **Phone bar:** five frosted tabs with 24px icons and 13px labels; the current tab has a band fill.
-- **Tab pill:** a segmented band pill whose current tab is a raised card ("Cư dân" and "Vai trò"; "Mới nhất" and "Sôi nổi").
+- **Tab pill:** a segmented band pill whose current tab is a raised card ("Cư dân" and "Vai trò").
 
 ### Announcements
 A management post is an ordinary post with the management mark and "Chính thức" beside the name. Managers write it on the normal compose page: channel, title, body, then "Đăng bài". A pinned post shows a "Đã ghim" line in its channel, and a soft row at the top of Bảng tin.
@@ -311,9 +311,28 @@ Sign-in, set-password and forgot-password pages drop the app shell. They show a 
 Every data area has the states in UI_DESIGN_SPEC §5.1. **Loading** shows skeletons shaped like the final layout: band-grey blocks with a slow 1.4s pulse (still under reduced motion), and the main region sets `aria-busy` with a hidden "Đang tải…" status. Nothing new appears for loads under 300ms. A **load error** replaces only the area that failed (the feed list, a thread's comments, the queue, a page body or admin data) with a card: red alert icon, a bold "Không tải được …" line, one muted sentence, and "Thử lại". Banners, posts and panels around it stay usable. An **action in progress** keeps the button's width and swaps its label for a 16px ring spinner with "Đang gửi" or "Đang lưu" (aria-busy). A **send or save failure** adds a persistent danger-tint notice with a 1.5px danger outline inside the form, above its buttons. It says the text is still there and offers "Thử lại"; the input is never cleared. **Offline** adds a slim band-grey strip under the top bar (sticky, with an alert icon) saying drafts are kept on the device, and sends fail with the offline wording until the connection returns.
 
 ### Admin Screens
-Admin pages sit under a "Quản trị" sidebar group (a "Quản trị" tab and an index page on phone), in a 1080px column with a "Quản trị" back link, an h1 and one muted lead line. Lists are hairline **data tables** inside a card: 44px rows, 13px muted column heads, primary text with a muted second line, and the row action right-aligned. On phones each row stacks, with a fixed-width muted label before each value and no label on the name. Status uses pills: ok-tint "Đang hoạt động", band pills with an icon for invited and read-only accounts, and an outlined muted pill for deactivated ones. Filters are the same chip row as the composer's channel picker. Settings use 96px number fields with a "/100" unit. A **threshold strip** (soft and band, labelled) shows where content is published or held, with the exact ranges written underneath. Auto-delete is a switch, off by default. Turning it on adds a danger-tint third part to the strip, a score field and a per-channel column. Unsaved settings collect in an ink **save bar** that sticks to the bottom (above the phone bar) and names the count; errors are written in the bar and mark the fields. Charts are neutral `field`-grey columns or bars with 4px rounded ends, recessive gridlines, a hover value, a written `aria-label` summary and a "Xem dạng bảng" table. The audit log carries no edit controls. Rows where the AI was overturned get an alert pill, and user IDs are pseudonymous.
+Admin pages sit under a "Quản trị" sidebar group (a "Quản trị" tab and an index page on phone), in a 1080px column with a "Quản trị" back link, an h1 and one muted lead line. Lists are hairline **data tables** inside a card: 44px rows, 13px muted column heads, primary text with a muted second line, and the row action right-aligned. On phones each row stacks, with a fixed-width muted label before each value and no label on the name. Status uses pills: ok-tint "Đang hoạt động", band pills with an icon for invited and read-only accounts, and an outlined muted pill for deactivated ones. Filters are the same chip row as the composer's channel picker. Thresholds are **sliders** (0–100, step 1): a label with the live value ("45/100") on the right, a 44px-tall native range input with an 8px track filled in ink up to the value, and a white thumb with an ink ring. Other numeric settings (the read-only rule) stay 80–96px number fields. A channel's own thresholds sit behind a "Ngưỡng riêng" checkbox row that names the inherited values when unchecked and reveals that channel's sliders when checked. A **threshold strip** (soft and band, labelled) shows where content is published or held, with the exact ranges written underneath. Auto-delete is a switch, off by default. Turning it on adds a danger-tint third part to the strip, a score field and a per-channel column. Unsaved settings collect in an ink **save bar** that sticks to the bottom (above the phone bar) and names the count; errors are written in the bar and mark the fields. Charts are neutral `field`-grey columns or bars with 4px rounded ends, recessive gridlines, a hover value, a written `aria-label` summary and a "Xem dạng bảng" table. The audit log carries no edit controls. Rows where the AI was overturned get an alert pill, and user IDs are pseudonymous.
 
-Circles of 40px (34px in comments, 32px in the queue) in the four avatar hues, with a single initial. Management uses the brand mark on a white circle with a hairline, which doubles as the official-voice marker next to "Phản hồi chính thức".
+Circles of 36px (30px in comments, 32px in the queue) in one quiet tone: band fill, a 1px edge ring and an ink initial. Management uses the brand mark on a white circle with a hairline, which doubles as the official-voice marker next to "Phản hồi chính thức". Units are never shown beside resident names in public: COMMUNITY_RULES Rule 5 treats a unit number as personal information; moderators see it in the case view only.
+
+### Simplification Pass (2026-11-17)
+Changes made after the prototype to cut repetition and clutter. They override the prototype where the two differ.
+- **Feed:** no sort ("Mới nhất / Sôi nổi") and no "Lọc" menu. Neither is in the spec, and both only reordered the posts already loaded. The list is newest first under "Bài viết mới nhất". An empty channel offers its post button.
+- **Compose:** the selected channel's note sits in a soft block under the channel picker, with its rule link. The draft and outage notices each appear once: the outage strip above the form, and a single hint line under the body that also says the draft is kept on the device.
+- **Thread:** the comment box at the top of a thread is one line ("Viết bình luận của bạn…") until focused; its hint and buttons appear on focus or once there is text. After sending, the page scrolls to the new comment and highlights it. A held comment carries one short pending line ("Đang chờ ban quản lý xem xét, chỉ bạn thấy bình luận này…"); there is no second notice under the form.
+- **Moderation case:** the author line shows unit and the confirmed-violation count (bold ink, never red) next to the name, so history is read with the content. "Chi tiết đánh giá" is a disclosure, closed by default and open for appeals, holding the automatic assessment, the score line and the previous decision. "Người viết" and "Bước hiện tại" are gone. Decisions confirm in the inline strip above the queue, naming the case, the outcome and that the writer was notified.
+- **Sidebar:** labels stay on one line (ellipsis, full name in the tooltip); the sidebar's right padding is 16px.
+- **People:** resident avatars are one quiet tone and smaller (36px, 30px in comments); colour stays with the management mark.
+- **Management notices:** an official post reads like a printed notice: a 2px ink rule across the top of the row (3px inside the thread card), and the full date first ("Thứ Bảy, 21/11/2026") with the author, "Chính thức" and channel underneath. Resident posts keep relative times.
+- **Channel pages:** only Bảng tin keeps the navy banner with the gold half-discs. A channel page has a plain header: a 52px band tile with the channel icon, the channel name as a Headline, and its description in muted text.
+- **Admin tables:** rows size to their content (6px 12px padding); rows with an action are still at least 44px through the button.
+- **Admin filter page:** order follows frequency of use: Trạng thái, then one card "Khi nào nội dung bị giữ lại" (strip, global fields, auto-delete switch, and a "Ngưỡng riêng theo kênh" disclosure whose summary pill says how many channels override the global value; it opens by itself when a channel value is invalid), then "Khi bộ lọc AI lỗi", then "Tạm chỉ được đọc".
+
+### Restraint Rules (2026-11-17)
+These keep the interface from reading as generated. They apply to every new screen.
+- **Say it once, or not at all.** A hint stays only where a mistake is costly or the outcome is not visible: the one-time appeal, deactivation, auto-delete, hate content needing Rule 1–3, the draft being kept. No hint restates what a label or button already says. The pending note is exactly the COMMUNITY_RULES wording, everywhere.
+- **Cards only for filling in or deciding.** Forms, the decision panel, results and data tables sit in cards. Reading pages (Quy tắc, Cài đặt account and delivery, Yêu cầu của tôi, the summary and progress on Xem xét lại, Phân tích, the export list) use page sections: an h2 and a hairline above, no box.
+- **Icons where they navigate or signal.** Navigation, icon-only buttons, status pills, comment action chips, queue markers and the decision pair keep icons. Text buttons, including the primary "Đăng bài", have none.
 
 ### Dialogs And Toasts
 Dialogs are 560px wide with a 26px radius and a blurred scrim, and become bottom sheets with a grab handle on phone. Toasts are an ink pill that never covers the next action. The moderation confirmation is inline rather than in a toast.

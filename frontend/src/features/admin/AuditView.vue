@@ -92,6 +92,5 @@ const CHIPS: [F, string][] = [
     <div v-if="log.hasNextPage.value" class="row-a">
       <button class="btn" :aria-busy="log.isFetchingNextPage.value" @click="log.fetchNextPage()">Xem mục cũ hơn</button>
     </div>
-    <p class="hint">{{ rows.length }} mục đang hiển thị.</p>
   </AdminPage>
 </template>

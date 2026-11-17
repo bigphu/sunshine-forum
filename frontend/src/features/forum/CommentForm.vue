@@ -23,6 +23,8 @@ const props = defineProps<{
   submitLabel: string
   cancelLabel?: string
   hint?: string
+  // Thu gọn thành một dòng cho tới khi người dùng bấm vào (ô bình luận ở đầu chủ đề)
+  compact?: boolean
 }>()
 const emit = defineEmits<{ done: [res: Submitted]; cancel: [] }>()
 
@@ -34,6 +36,15 @@ const empty = ref(false)
 const { data: status } = useScreeningStatus()
 const { warning, reset } = useDraftCheck([body], computed(() => props.channelId))
 const over = computed(() => charLen(body.value) > MAX_CHARS)
+const focused = ref(false)
+const idle = computed(
+  () => props.compact && !focused.value && !body.value && !failure.value && !warning.value && !empty.value && !busy.value,
+)
+// Rời khỏi form (focus ra ngoài) mà chưa viết gì thì thu gọn lại
+function onBlur(e: FocusEvent) {
+  const next = e.relatedTarget as Node | null
+  if (!next || !(e.currentTarget as HTMLElement).contains(next)) focused.value = false
+}
 
 async function submit() {
   empty.value = !body.value.trim()
@@ -65,7 +76,7 @@ defineExpose({ focus: () => area.value?.focus() })
 </script>
 
 <template>
-  <form novalidate @submit.prevent="submit">
+  <form novalidate :class="{ 'cf-idle': idle }" @submit.prevent="submit" @focusin="focused = true" @focusout="onBlur">
     <label class="lb" :class="{ sr: labelHidden }" :for="id">{{ label }}</label>
     <textarea
       :id="id"
@@ -74,12 +85,13 @@ defineExpose({ focus: () => area.value?.focus() })
       class="field"
       :aria-invalid="empty || over ? 'true' : undefined"
       :aria-describedby="`${id}-h ${id}-w ${id}-lim`"
+      :placeholder="compact ? 'Viết bình luận của bạn…' : undefined"
       @input="empty = false"
     />
     <p v-if="empty" class="err" role="alert">Hãy viết nội dung trước khi gửi.</p>
     <CharLimit :id="`${id}-lim`" :value="body" />
-    <p :id="`${id}-h`" class="hint">
-      {{ status && !status.model_online ? OUTAGE_HINT : '' }}{{ hint ?? 'Đừng chia sẻ thông tin riêng tư.' }}
+    <p v-show="!idle && (hint || (status && !status.model_online))" :id="`${id}-h`" class="hint">
+      {{ status && !status.model_online ? OUTAGE_HINT : '' }}{{ hint }}
     </p>
     <div :id="`${id}-w`"><DraftWarning :warning="warning" @fix="area?.focus()" /></div>
     <SaveFailure
@@ -89,7 +101,7 @@ defineExpose({ focus: () => area.value?.focus() })
       :offline="failure.status === 0"
       @retry="submit"
     />
-    <div class="fm-e">
+    <div v-show="!idle" class="fm-e">
       <button v-if="cancelLabel" type="button" class="btn ghost" @click="emit('cancel')">{{ cancelLabel }}</button>
       <span v-else />
       <button class="btn" :class="{ pri: !warning }" type="submit" :aria-busy="busy">
