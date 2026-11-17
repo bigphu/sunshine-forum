@@ -431,3 +431,8 @@
   height: auto;
   padding: 6px 12px;
 }
+
+/* Nhật ký kiểm tra: tên lỗi của AI đứng sau kết quả */
+.tbl .aip {
+  margin-left: 8px;
+}

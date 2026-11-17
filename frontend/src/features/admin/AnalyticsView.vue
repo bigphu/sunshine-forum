@@ -81,7 +81,7 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
           <div>
             <dt>{{ overturned }}</dt>
             <dd>
-              lần AI bị lật: {{ a.overturned.held_wrong }} giữ nhầm, {{ a.overturned.missed }} bỏ sót{{
+              lần AI đánh giá sai: {{ a.overturned.held_wrong }} giữ nhầm, {{ a.overturned.missed }} bỏ sót{{
                 settings.data.value?.auto_delete_enabled || a.overturned.deleted_wrong ? `, ${a.overturned.deleted_wrong} xóa nhầm` : ''
               }}
             </dd>
