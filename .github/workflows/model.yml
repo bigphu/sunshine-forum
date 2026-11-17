@@ -1,5 +1,5 @@
-# CI của dịch vụ mô hình (submodule model/): test chấm điểm và hợp đồng HTTP bằng mô hình đồ
-# chơi, không cần dataset. Gọi từ ci.yml
+# CI của dịch vụ mô hình (submodule model/, repo riêng tư): test chấm điểm và hợp đồng HTTP
+# bằng mô hình đồ chơi, không cần dataset. Gọi từ ci.yml, cần secret MODEL_REPO_TOKEN
 name: model
 
 on:
@@ -17,9 +17,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Repo forum lấy bằng GITHUB_TOKEN như mọi job khác; không lưu lại credential để khỏi
+      # chồng lên token của bước lấy submodule
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          persist-credentials: false
+
+      # model/ là repo riêng tư: GITHUB_TOKEN của forum không đọc được nó. MODEL_REPO_TOKEN là
+      # fine-grained token chỉ đọc nội dung repo mô hình (docs/guides/deploying.md). Token đó chỉ
+      # dùng được cho repo mô hình, nên chỉ đưa nó cho lệnh lấy submodule, không cho checkout.
+      - name: Fetch model submodule
+        working-directory: .
+        env:
+          MODEL_REPO_TOKEN: ${{ secrets.MODEL_REPO_TOKEN }}
+        run: |
+          # Bỏ khoảng trắng và ký tự xuống dòng thừa khi dán secret trên Windows
+          token=$(printf '%s' "$MODEL_REPO_TOKEN" | tr -d '[:space:]')
+          test -n "$token" || { echo "::error::MODEL_REPO_TOKEN secret is not set"; exit 1; }
+          # Kiểm tra quyền trước để lỗi nói rõ nguyên nhân (chỉ in mã HTTP, không in token)
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token"             https://api.github.com/repos/bigphu/vietnamese-toxic-comment-detection)
+          case "$code" in
+            200) ;;
+            401) echo "::error::MODEL_REPO_TOKEN is invalid or expired (HTTP 401)"; exit 1 ;;
+            *) echo "::error::MODEL_REPO_TOKEN cannot read bigphu/vietnamese-toxic-comment-detection (HTTP $code); give it Contents: Read-only on that repo"; exit 1 ;;
+          esac
+          git -c "url.https://x-access-token:${token}@github.com/bigphu/vietnamese-toxic-comment-detection.insteadOf=https://github.com/bigphu/vietnamese-toxic-comment-detection"             submodule update --init model
 
       - uses: actions/setup-python@v5
         with:
