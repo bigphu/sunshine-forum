@@ -17,8 +17,18 @@ cp .env.prod.example .env            # set APP_URL, MAIL_FROM, ADMIN_EMAIL, ADMI
 Back up `deploy/secrets/privacy_enc_key.txt` and `privacy_hmac_key.txt` somewhere safe. Without them the
 encrypted names, emails and units cannot be read, and nobody can sign in.
 
-Install the host site: copy `deploy/nginx/sunshine-forum.conf` to `/etc/nginx/sites-enabled/`, issue the
-certificate (DNS-01 through Cloudflare, as for StoreIt), and reload nginx. The site proxies to the `web` container
+Install the host site. Add an A record for the name in Cloudflare (set to "DNS only"). The hosting provider blocks
+inbound traffic from abroad, so Let's Encrypt cannot reach port 80: issue the certificate with the DNS challenge,
+reusing StoreIt's Cloudflare credentials, then enable the site:
+
+```sh
+sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini -d sunshine-forum.bigphu.io.vn --deploy-hook "systemctl reload nginx"
+sudo cp deploy/nginx/sunshine-forum.conf /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/sunshine-forum.conf /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Until the site is enabled, browsers get StoreIt's certificate for this name and show a security warning. The site proxies to the `web` container
 on `127.0.0.1:8092`, with buffering turned off for the notification stream.
 
 ## Each release
