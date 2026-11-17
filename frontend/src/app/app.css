@@ -432,7 +432,13 @@
   padding: 6px 12px;
 }
 
-/* Nhật ký kiểm tra: tên lỗi của AI đứng sau kết quả */
-.tbl .aip {
-  margin-left: 8px;
+/* Nhật ký kiểm tra: kết quả bên trái, tên lỗi của AI sát mép phải ô, cùng một đường giữa;
+   mọi hàng cao bằng hàng có pill để cột thẳng hàng */
+.tbl .oc {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
 }

@@ -87,8 +87,10 @@ const CHIPS: [F, string][] = [
             </td>
             <td data-l="Quy tắc">{{ e.rule ?? '—' }}</td>
             <td data-l="Kết quả">
-              {{ OUTCOME[e.outcome] ?? e.outcome }}
-              <span v-if="e.overturned_ai" class="pill aip"><Icon name="alert" />{{ aiMistake(e.action) }}</span>
+              <span class="oc">
+                <span>{{ OUTCOME[e.outcome] ?? e.outcome }}</span>
+                <span v-if="e.overturned_ai" class="pill"><Icon name="alert" />{{ aiMistake(e.action) }}</span>
+              </span>
             </td>
             <td data-l="Người dùng" class="nw">{{ e.subject }}</td>
           </tr>
