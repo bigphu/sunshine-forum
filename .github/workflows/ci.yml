@@ -18,3 +18,5 @@ jobs:
     uses: ./.github/workflows/backend.yml
   frontend:
     uses: ./.github/workflows/frontend.yml
+  model:
+    uses: ./.github/workflows/model.yml

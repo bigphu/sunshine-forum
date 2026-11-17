@@ -56,10 +56,11 @@ curl -X PUT localhost:8093/mock/state -d '{}'                 # back to normal
 
 Held content is rescanned by the worker within 15 seconds of the service answering again.
 
-**Real service.** The FastAPI service lives in the model repo (`vietnamese-toxic-comment-detection`:
-`service/app.py`, `Dockerfile`). It scores sentence by sentence with the calibrated SVM and passes the same contract
-checks. Without the trained model, `python src/toy.py` there builds a toy model to run it locally. To use it in the dev
-stack, run its image and set `SCREENING_MODEL_URL` to its address.
+**Real service.** The FastAPI service lives in the `model/` submodule (`service/app.py`, `Dockerfile`). It scores
+sentence by sentence with the calibrated SVM and passes the same contract checks. Production runs it as the `model`
+service (`make model-image`). Without the trained model, `python src/toy.py` in `model/` builds a toy model to run it
+locally; to try it in the dev stack, run its image on the `sunshine-forum_default` network and point
+`SCREENING_MODEL_URL` at it.
 
 ## Settings without a restart (FR-5.1)
 

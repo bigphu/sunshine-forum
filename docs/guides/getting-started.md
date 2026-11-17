@@ -8,7 +8,7 @@ description: Run the stack, load demo data, sign in with each role.
 Needs Docker. For checks on the host you also need Go 1.26 and Node 24.
 
 ```sh
-make init     # once: secrets in deploy/secrets/, .env, backend/.env.local
+make init     # once: the model/ submodule, secrets in deploy/secrets/, .env, backend/.env.local
 make dev      # build + start everything, follow logs (Ctrl-C leaves it running)
 make seed     # demo accounts and content
 ```

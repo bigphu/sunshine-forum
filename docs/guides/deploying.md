@@ -8,11 +8,27 @@ Production is one Ubuntu server running `compose.prod.yml`, next to StoreIt, beh
 ## First install
 
 ```sh
-git clone <repo> /opt/sunshine-forum && cd /opt/sunshine-forum
-sh deploy/scripts/init.sh            # deploy/secrets/: Postgres password, privacy keys
+git clone --recurse-submodules <repo> /opt/sunshine-forum && cd /opt/sunshine-forum
+sh deploy/scripts/init.sh            # deploy/secrets/: Postgres password, privacy keys, empty Resend key file
 echo -n "<resend key>" > deploy/secrets/resend_api_key.txt
 cp .env.prod.example .env            # set APP_URL, MAIL_FROM, ADMIN_EMAIL, ADMIN_PASSWORD
 ```
+
+`init.sh` leaves `deploy/secrets/` at mode 700 and the files at 644. The backend containers run as a non-root user
+(uid 65532) and compose mounts secret files with their host permissions, so files at 600 make `migrate`, `app`
+and `worker` exit at start-up. The 700 directory still keeps other users on the server out. If you create a secret
+file by hand, `chmod 644` it.
+
+**The model.** The trained model is not in git. Train it on a machine with ViHSD access (`model/README.md`), copy
+`model/models/svm_final.joblib` to the same path on the server, then build its image; use the model's version as
+the tag:
+
+```sh
+make model-image MODEL_TAG=svm-2026.11.17
+```
+
+and set `MODEL_TAG=svm-2026.11.17` in `.env`. To run without a model for now, set `SCREENING_MODEL_URL=` (empty)
+instead: the backend falls back to its stand-in with sample scores.
 
 Back up `deploy/secrets/privacy_enc_key.txt` and `privacy_hmac_key.txt` somewhere safe. Without them the
 encrypted names, emails and units cannot be read, and nobody can sign in.
@@ -37,7 +53,7 @@ A release is a `vX.Y.Z` tag on `main`, after the CI checks pass.
 
 ```sh
 cd /opt/sunshine-forum
-git fetch --tags && git checkout vX.Y.Z
+git fetch --tags && git checkout vX.Y.Z && git submodule update --init
 make images TAG=vX.Y.Z
 TAG=vX.Y.Z docker compose -f compose.prod.yml up -d    # migrate runs before app and worker
 ```
@@ -47,6 +63,10 @@ Migrations must stay backward compatible for one release, because the old `app` 
 is healthy.
 
 After the first start, remove `ADMIN_PASSWORD` from `.env`; the account already exists.
+
+**A new model** is its own release: build it with `make model-image MODEL_TAG=<new version>`, set `MODEL_TAG` in
+`.env`, and run `docker compose -f compose.prod.yml up -d model`. While the container restarts the forum applies
+its outage policy and rescans held content once the model answers, so swap at a quiet time.
 
 ## Rolling back
 

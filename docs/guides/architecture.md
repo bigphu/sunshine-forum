@@ -3,7 +3,7 @@ title: Architecture
 description: Services, modules, events, and how a post moves through the system.
 ---
 
-The full design, with UML views, is in `SYSTEM_DESIGN.md` and `docs/Sunshine_Forum_System_Documentation.docx`.
+The full design, with UML views, is in `docs/specs/SYSTEM_DESIGN.md` and `docs/architecture/` (the system documentation and its diagrams).
 This page is the short version for developers.
 
 ## The stack
@@ -15,7 +15,7 @@ This page is the short version for developers.
 | `app` | The HTTP API (`cmd/server`). Swagger UI at `/api/docs` in development |
 | `worker` | `cmd/worker`: delivers outbox events to subscribers, sends emails, rescans after outages, purges |
 | `web` | The Vue SPA. Vite in development; nginx in production, serving the SPA and proxying `/api` to `app` |
-| `model` | The model service. In development, the mock (`cmd/mockmodel`) with sample scores; in production, the trained SVM once it ships (until then the backend uses its in-process stand-in) |
+| `model` | The model service. In development, the mock (`cmd/mockmodel`) with sample scores; in production, the trained SVM from the `model/` submodule (`make model-image`) |
 | `mailpit` | Development mail inbox |
 | `seed` | Demo data, behind the `tools` profile |
 

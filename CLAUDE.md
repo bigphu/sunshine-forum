@@ -1,19 +1,22 @@
 # sunshine-apartment-forum
 
 Moderated residents' forum, monorepo in the same shape as StoreIt: `backend/` (Go modular monolith: chi,
-oapi-codegen strict server, pgx, River, sqlc, goose; platform packages from `github.com/bigphu/goat` v0.0.2) and
-`frontend/` (Vue 3). The root owns the Docker stack (`compose.yml`, `compose.prod.yml`, `deploy/`, `.env`, `Makefile`).
-See `README.md`.
+oapi-codegen strict server, pgx, River, sqlc, goose; platform packages from `github.com/bigphu/goat` v0.0.2),
+`frontend/` (Vue 3) and `model/` (git submodule: the Python toxicity model and its FastAPI scoring service). The
+root owns the Docker stack (`compose.yml`, `compose.prod.yml`, `deploy/`, `.env`, `Makefile`). See `README.md`;
+`docs/README.md` maps the documentation.
 
 ## Specs
 
-- `PRODUCT.md`, `SYSTEM_DESIGN.md`, `COMMUNITY_RULES.md`, `DESIGN.md` and `prototype/` are the source of truth.
-  `DESIGN.md` is the authority for screens; the prototype's markup and CSS are reused as-is.
+- `PRODUCT.md`, `DESIGN.md` (root, because the design tooling reads them there), `docs/specs/SYSTEM_DESIGN.md`,
+  `docs/specs/COMMUNITY_RULES.md`, `docs/specs/UI_DESIGN_SPEC.md` and `docs/prototype/` are the source of truth.
+  `DESIGN.md` is the authority for screens; the prototype's stylesheet is reused as-is.
 - Build only what the first release specifies. Out of scope: Web Push, resident reporting, urgent notices, the
   10-second undo, the Rule 6 pre-send warning, rewrite-and-repost, dark mode, the text-size control, voting.
-- The trained model is not connected. `SCREENING_MODEL_URL` selects `scorer.HTTP` (contract:
-  `backend/internal/screening/scorer/model-service.yaml`); the dev stack points it at the mock (`cmd/mockmodel`).
-  Empty means the in-process `scorer.StandIn`. Change the contract file, the client and the mock together.
+- `SCREENING_MODEL_URL` selects `scorer.HTTP` (contract: `backend/internal/screening/scorer/model-service.yaml`).
+  The dev stack points it at the mock (`cmd/mockmodel`), production at the `model` service built from `model/`
+  (`make model-image`). Empty means the in-process `scorer.StandIn`. Change the contract file, the client, the mock
+  and `model/src/scoring.py` together. The `model/` submodule has its own repo, branch and commits.
 
 ## Backend
 
@@ -42,6 +45,13 @@ See `README.md`.
 - Commands (in `frontend/`): `npm run dev` (:5180, proxies `/api` to :8091), `npm run check` (vue-tsc, Vitest,
   build), `npm run gen:api` after changing a backend OpenAPI spec (commit `src/lib/api/*.d.ts`).
 - UI text is Vietnamese, taken from the prototype and COMMUNITY_RULES.md. Comments in Vietnamese.
+
+## Repository hygiene
+
+- Don't commit binaries (`*.exe`, `bin/`), trained models (`model/models/`), secrets (`deploy/secrets/`, `.env*`
+  except the examples) or per-person tool state (`.impeccable/`, `.claude/skills|agents`); all are git-ignored.
+- On this Windows machine, run Vitest from a `C:\` path (uppercase drive letter); a lowercase `c:\` working
+  directory makes it load twice and fail before any test runs.
 
 ## Docs
 

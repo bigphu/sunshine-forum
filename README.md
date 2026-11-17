@@ -4,9 +4,8 @@ A moderated forum for one building's verified residents. Every post and comment 
 public, writers are warned before they submit, managers review what the filter holds back, and every
 rejection can be appealed once.
 
-The product is specified in [PRODUCT.md](PRODUCT.md), [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md),
-[COMMUNITY_RULES.md](COMMUNITY_RULES.md) and [DESIGN.md](DESIGN.md). The clickable prototype in `prototype/` is the
-reference for every screen.
+New here? Read [PRODUCT.md](PRODUCT.md) for what the forum is for, then [Getting started](docs/guides/getting-started.md)
+to run it. [docs/README.md](docs/README.md) maps every other document.
 
 ## What it does
 
@@ -25,43 +24,32 @@ reference for every screen.
 - **Privacy**: names, emails and units are encrypted at rest; the audit log uses pseudonyms; deactivated
   accounts and old event payloads are purged after 90 days.
 
-The trained model is **not connected yet**. The backend calls a model service over HTTP
-(`SCREENING_MODEL_URL`, contract in `backend/internal/screening/scorer/model-service.yaml`). In development that
-service is a mock with sample scores (`mock-0.1 (điểm mẫu)`); without a URL the backend uses an in-process
-stand-in. Connecting the real model is a configuration change; see `backend/docs/screening.md`.
+The toxicity model is a calibrated TF-IDF + linear SVM trained on ViHSD, served by a small FastAPI service in
+`model/`. The backend calls it over HTTP (`SCREENING_MODEL_URL`); in development a mock with sample scores stands
+in, so the forum runs without the trained model.
 
 ## Repository
 
-Monorepo: the root owns the Docker stack, each app has its own folder and Dockerfile.
-
 | Path | Holds |
 |---|---|
+| `PRODUCT.md` | What the product is for, who uses it, and the requirements |
+| `DESIGN.md` | The design system; the authority for every screen |
 | `backend/` | Go API, worker, migrations and seed. Module references in `backend/docs/` |
 | `frontend/` | Vue SPA (`frontend/README.md`) |
-| `docs/guides/` | Guides for running, operating and extending the system |
-| `docs/` | The system documentation (`.docx`) and its UML diagrams |
-| `prototype/` | The approved HTML prototype |
-| `compose.yml` | Dev stack: postgres, migrate, app, worker, web, mailpit, seed (profile `tools`) |
+| `model/` | Git submodule: the toxicity model, its training, and the scoring service (`model/README.md`) |
+| `docs/` | Guides, specs, architecture and the prototype (`docs/README.md`) |
+| `deploy/` | Host nginx site and `scripts/init.sh`; generated secrets (git-ignored) |
+| `compose.yml` | Dev stack: postgres, migrate, app, worker, web, model (mock), mailpit, seed (profile `tools`) |
 | `compose.prod.yml` | Single-server production stack |
-| `deploy/` | Host nginx site, `scripts/init.sh`; generated secrets (git-ignored) |
-| `Makefile` | Stack, database, codegen and checks for both apps |
-
-## Guides
-
-| Guide | For |
-|---|---|
-| [Getting started](docs/guides/getting-started.md) | Run the stack, demo data and accounts |
-| [Architecture](docs/guides/architecture.md) | Services, modules, events, how a post moves through the system |
-| [Configuration and operations](docs/guides/operations.md) | Environment, `make` targets, checks, purges |
-| [Adding a backend module](docs/guides/writing-a-module.md) | Checklist for a new module |
-| [Deploying](docs/guides/deploying.md) | Release tag to server |
+| `Makefile` | Stack, database, codegen, checks and release images |
 
 ## Development
 
-Needs Docker, and for running checks on the host Go 1.26 and Node 24.
+Needs Docker, and for running checks on the host Go 1.26, Node 24 and Python 3.11.
 
 ```sh
-make init     # once: secrets, .env, backend/.env.local
+git clone --recurse-submodules <repo>   # or, in an existing clone: git submodule update --init
+make init     # once: submodule, secrets, .env, backend/.env.local
 make dev      # build + start everything, follow logs (Ctrl-C leaves it running)
 make seed     # demo accounts and content (SEED_PASSWORD in .env)
 ```
@@ -73,4 +61,6 @@ make seed     # demo accounts and content (SEED_PASSWORD in .env)
 | http://localhost:8026 | Mailpit (invitation and reset emails) |
 | http://localhost:8093 | Mock model service |
 
-Demo accounts and every other target are in [Getting started](docs/guides/getting-started.md).
+`make check` runs everything CI runs for the backend and frontend; the model service's tests run with
+`pytest tests` in `model/`. Demo accounts and every other target are in
+[Getting started](docs/guides/getting-started.md); releases follow [Deploying](docs/guides/deploying.md).

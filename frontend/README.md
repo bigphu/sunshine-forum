@@ -1,7 +1,7 @@
 # Frontend
 
 Vue 3 single-page app for the Sunshine Apartment Forum. The screens are a port of the approved prototype
-(`../prototype/`); `../DESIGN.md` is the authority when they disagree.
+(`../docs/prototype/`); `../DESIGN.md` is the authority when they disagree.
 
 ## Commands
 
@@ -67,7 +67,7 @@ src/
 
 ## Conventions
 
-- UI text is Vietnamese and comes from the prototype or `COMMUNITY_RULES.md`. Code comments are Vietnamese.
+- UI text is Vietnamese and comes from the prototype or `docs/specs/COMMUNITY_RULES.md`. Code comments are Vietnamese.
 - Every page heading has `id="focus-t"`; the router focuses it after navigation for screen readers.
 - Loading shows skeletons or "Đang tải…"; a failed region shows `LoadError` with a retry and leaves the rest usable;
   a failed send keeps the text and shows `SaveFailure`.
