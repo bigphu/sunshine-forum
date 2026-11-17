@@ -171,7 +171,7 @@ const CHIPS: [St, string][] = [
 </script>
 
 <template>
-  <AdminPage title="Người dùng" lead="Mời cư dân từ danh sách đang thuê, ngừng truy cập khi hết hợp đồng, và giao vai trò cho nhân viên.">
+  <AdminPage title="Người dùng" lead="Mời cư dân từ danh sách đang thuê, ngừng truy cập khi hết hợp đồng.">
     <nav class="rtab" aria-label="Người dùng">
       <RouterLink to="/quan-tri/nguoi-dung" :aria-current="roles ? undefined : 'page'"><Icon name="users" />Cư dân</RouterLink>
       <RouterLink to="/quan-tri/nguoi-dung/vai-tro" :aria-current="roles ? 'page' : undefined"><Icon name="shield" />Vai trò</RouterLink>
@@ -180,7 +180,7 @@ const CHIPS: [St, string][] = [
     <template v-else-if="roles">
       <div class="atb">
         <p class="tcount">{{ staff.length }} tài khoản nhân viên</p>
-        <button class="btn pri" @click="openInvite('manager')"><Icon name="plus" />Mời nhân viên</button>
+        <button class="btn pri" @click="openInvite('manager')">Mời nhân viên</button>
       </div>
       <section class="card tc">
         <table class="tbl">
@@ -193,22 +193,19 @@ const CHIPS: [St, string][] = [
               <td class="tac">
                 <span v-if="a.id === auth.me?.id" class="ac0">Tài khoản của bạn</span>
                 <span v-else-if="a.status === 'deactivated'" class="ac0">Không còn truy cập</span>
-                <button v-else class="btn" :aria-label="`Đổi vai trò của ${a.name}`" @click="openRole(a)">Đổi vai trò</button>
+                <button v-else class="btn ghost" :aria-label="`Đổi vai trò của ${a.name}`" @click="openRole(a)">Đổi vai trò</button>
               </td>
             </tr>
           </tbody>
         </table>
       </section>
-      <p class="hint">
-        Quản lý duyệt nội dung và đăng thông báo. Quản trị viên làm mọi việc của quản lý, cộng với các trang quản trị. Vai trò mới có hiệu
-        lực ngay từ thao tác tiếp theo của người đó.
-      </p>
+      <p class="hint">Vai trò mới có hiệu lực ngay từ thao tác tiếp theo của người đó.</p>
     </template>
     <template v-else>
       <div class="atb">
         <label class="af" for="uq-i"><span class="sr">Tìm tên, căn hộ hoặc email</span><Icon name="search" /><input id="uq-i" v-model="q" class="field" type="search" placeholder="Tìm tên, căn hộ hoặc email" /></label>
         <button class="btn" @click="openImport">Nhập danh sách cư dân</button>
-        <button class="btn pri" @click="openInvite('resident')"><Icon name="plus" />Mời cư dân</button>
+        <button class="btn pri" @click="openInvite('resident')">Mời cư dân</button>
       </div>
       <div class="pick" role="group" aria-label="Trạng thái">
         <span>Trạng thái</span>
@@ -232,19 +229,16 @@ const CHIPS: [St, string][] = [
                 <span v-else class="pill mu"><Icon name="x" />Đã ngừng, xóa ngày {{ purgeOn(a) }}</span>
               </td>
               <td class="tac">
-                <button v-if="a.status === 'invited'" class="btn" :aria-label="`Gửi lời mời mới cho ${a.name}`" @click="reinvite(a)">Gửi lời mời mới</button>
+                <button v-if="a.status === 'invited'" class="btn ghost" :aria-label="`Gửi lời mời mới cho ${a.name}`" @click="reinvite(a)">Gửi lời mời mới</button>
                 <span v-else-if="a.status === 'deactivated'" class="ac0">Không còn truy cập</span>
-                <button v-else class="btn" :aria-label="`Ngừng truy cập của ${a.name}`" @click="(deact = a), (deErr = '')">Ngừng truy cập</button>
+                <button v-else class="btn ghost" :aria-label="`Ngừng truy cập của ${a.name}`" @click="(deact = a), (deErr = '')">Ngừng truy cập</button>
               </td>
             </tr>
           </tbody>
         </table>
         <p v-else-if="!accounts.isPending.value" class="tbl-e">Không có tài khoản nào khớp.</p>
       </section>
-      <p class="hint">
-        Hiển thị {{ shown.length }} trong {{ residents.length }} tài khoản. Mỗi người lớn có một tài khoản và một email. Lời mời gửi liên kết
-        đặt mật khẩu, có hiệu lực trong 3 ngày. Gửi lời mời mới sẽ làm liên kết cũ hết hiệu lực.
-      </p>
+      <p class="hint">Hiển thị {{ shown.length }} trong {{ residents.length }} tài khoản. Lời mời có hiệu lực 3 ngày.</p>
     </template>
 
     <AppDialog v-if="inviting" :title="inviting === 'manager' ? 'Mời nhân viên' : 'Mời cư dân'" @close="inviting = null">

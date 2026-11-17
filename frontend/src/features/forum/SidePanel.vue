@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Icon from '@/components/Icon.vue'
 import { useAuth } from '@/lib/auth'
 import { CHANNEL_NOTE, RULE_SHORT } from '@/lib/forum'
 import { useChannels } from '@/lib/queries'
@@ -17,7 +16,7 @@ const note = computed(() => (props.slug ? CHANNEL_NOTE[props.slug] : undefined))
 <template>
   <div class="col-r">
     <div v-if="!auth.readOnlyUntil" class="act">
-      <button class="btn pri" @click="emit('compose')"><Icon name="plus" />{{ composeLabel ?? 'Đăng bài' }}</button>
+      <button class="btn pri" @click="emit('compose')">{{ composeLabel ?? 'Đăng bài' }}</button>
     </div>
     <aside class="pn" aria-label="Thông tin thêm">
       <section v-if="channel && note" class="pn-c">

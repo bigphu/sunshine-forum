@@ -23,12 +23,13 @@ APP_PORT    ?= 8091
 COMPOSE := docker compose
 PSQL    := $(COMPOSE) exec postgres psql -U $(APP_DB_USER) -d $(APP_DB_NAME)
 
-TAG      ?= dev
-REGISTRY ?= sunshine-forum
+TAG       ?= dev
+REGISTRY  ?= sunshine-forum
+MODEL_TAG ?= latest
 
 .DEFAULT_GOAL := help
 .PHONY: help init dev up down restart build logs logs-app logs-worker logs-web ps \
-        psql db-reset seed generate check images
+        psql db-reset seed generate check images model-image
 
 help:
 	@echo Prerequisite: init
@@ -36,12 +37,13 @@ help:
 	@echo Docker      : up down restart build logs logs-app logs-worker logs-web ps
 	@echo DB          : psql seed db-reset CONFIRM=yes
 	@echo Code        : generate check
-	@echo Release     : images TAG=1.0.0 REGISTRY=registry.example.com
+	@echo Release     : images TAG=1.0.0, model-image MODEL_TAG=svm-2026.11.17
 	@echo Go only     : make -C backend help
 
 # --- Prerequisite ---
 # Chạy một lần sau khi clone: tạo secrets và file env
 init:
+	git submodule update --init
 	sh deploy/scripts/init.sh
 	@test -f .env               || cp .env.example .env
 	@test -f backend/.env.local || cp backend/.env.local.example backend/.env.local
@@ -105,3 +107,9 @@ check:
 images:
 	docker build --target prod -t $(REGISTRY)/backend:$(TAG) backend
 	docker build --target prod -t $(REGISTRY)/web:$(TAG) frontend
+
+# Image dịch vụ mô hình từ submodule model/. Mô hình đã train không nằm trong git: chép
+# models/svm_final.joblib vào model/models/ trước (xem model/README.md).
+model-image:
+	@test -f model/models/svm_final.joblib || { echo "model/models/svm_final.joblib is missing: train it (model/README.md) or copy it there"; exit 1; }
+	docker build -t $(REGISTRY)/model:$(MODEL_TAG) model

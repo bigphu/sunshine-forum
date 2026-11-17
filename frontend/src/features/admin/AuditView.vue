@@ -40,15 +40,22 @@ const OUTCOME: Record<string, string> = {
   restored: 'Đã khôi phục',
   permanently_rejected: 'Từ chối vĩnh viễn',
 }
+// Người kiểm duyệt sửa lại đánh giá của AI: gọi đúng tên lỗi của AI theo hành động
+function aiMistake(action: string): string {
+  if (action === 'approve') return 'AI giữ nhầm'
+  if (action === 'remove') return 'AI bỏ sót'
+  if (action === 'appeal_accepted') return 'AI xóa nhầm'
+  return 'AI đánh giá sai'
+}
 const CHIPS: [F, string][] = [
   ['all', 'Tất cả'],
-  ['overturned', 'Lật quyết định AI'],
+  ['overturned', 'AI đánh giá sai'],
   ['config', 'Thay đổi cấu hình'],
 ]
 </script>
 
 <template>
-  <AdminPage title="Nhật ký kiểm tra" lead="Mọi quyết định của người kiểm duyệt và mọi thay đổi cấu hình, kể cả khi quản lý lật quyết định của AI.">
+  <AdminPage title="Nhật ký kiểm tra" lead="Mọi quyết định của người kiểm duyệt và mọi thay đổi cấu hình, kể cả khi quản lý sửa lại đánh giá của AI.">
     <div class="pend">
       <Icon name="shield" /><span
         >Nhật ký chỉ ghi thêm. Không ai sửa hoặc xóa được, kể cả quản trị viên. Nhật ký không lưu nội dung bài viết hay thông tin cá nhân;
@@ -80,8 +87,10 @@ const CHIPS: [F, string][] = [
             </td>
             <td data-l="Quy tắc">{{ e.rule ?? '—' }}</td>
             <td data-l="Kết quả">
-              <span v-if="e.overturned_ai" class="pill"><Icon name="alert" />{{ OUTCOME[e.outcome] ?? e.outcome }}, lật AI</span>
-              <template v-else>{{ OUTCOME[e.outcome] ?? e.outcome }}</template>
+              <span class="oc">
+                <span>{{ OUTCOME[e.outcome] ?? e.outcome }}</span>
+                <span v-if="e.overturned_ai" class="pill"><Icon name="alert" />{{ aiMistake(e.action) }}</span>
+              </span>
             </td>
             <td data-l="Người dùng" class="nw">{{ e.subject }}</td>
           </tr>
@@ -92,6 +101,5 @@ const CHIPS: [F, string][] = [
     <div v-if="log.hasNextPage.value" class="row-a">
       <button class="btn" :aria-busy="log.isFetchingNextPage.value" @click="log.fetchNextPage()">Xem mục cũ hơn</button>
     </div>
-    <p class="hint">{{ rows.length }} mục đang hiển thị.</p>
   </AdminPage>
 </template>

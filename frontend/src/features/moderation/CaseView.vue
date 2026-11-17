@@ -146,7 +146,8 @@ defineExpose({
         <Avatar :name="it.author.name" />
         <div>
           <div class="c-w">
-            <b>{{ it.author.name }}</b><span>{{ it.ref.type === 'post' ? 'Bài viết' : 'Bình luận' }}</span><span><TimeAgo :at="it.created_at" /></span>
+            <b>{{ it.author.name }}</b><span v-if="it.author.unit">{{ it.author.unit }}</span>
+            <span :class="{ 'strk': (it.author_strikes ?? 0) > 0 }">{{ history }}</span><span><TimeAgo :at="it.created_at" /></span>
           </div>
           <p v-if="titleSegs.length" class="fc-tt" :lang="lang">
             <template v-for="(s, i) in titleSegs" :key="i"
@@ -163,7 +164,7 @@ defineExpose({
             >
           </p>
           <button v-if="hidden" class="btn rvb" @click="revealed = !revealed">
-            <Icon name="eye" />{{ revealed ? 'Ẩn lại đoạn này' : 'Hiện đoạn bị ẩn' }}
+            {{ revealed ? 'Ẩn lại đoạn này' : 'Hiện đoạn bị ẩn' }}
           </button>
         </div>
       </div>
@@ -176,14 +177,15 @@ defineExpose({
       <section class="dp" aria-labelledby="dp-h">
         <h3 id="dp-h" class="sr">Quyết định</h3>
         <div class="dp-b">
-          <button class="btn" :disabled="blocked || busy" :aria-expanded="ap ? open === 'ok' : undefined" aria-controls="rj" @click="choose('ok')">
+          <!-- data-dc: CSS của prototype tô đĩa biểu tượng xanh/đỏ và màu khi rê chuột hay khi mở -->
+          <button class="btn" data-dc="ok" :disabled="blocked || busy" :aria-expanded="ap ? open === 'ok' : undefined" aria-controls="rj" @click="choose('ok')">
             <Icon name="check" />{{ warnOk && !open ? still(choices[0]) : choices[0] }}
           </button>
-          <button class="btn" :disabled="blocked || busy" :aria-expanded="open === 'no'" aria-controls="rj" @click="choose('no')">
+          <button class="btn" data-dc="no" :disabled="blocked || busy" :aria-expanded="open === 'no'" aria-controls="rj" @click="choose('no')">
             <Icon name="x" />{{ choices[1] }}
           </button>
         </div>
-        <p class="hint">{{ decisionHint(c) }}</p>
+        <p v-if="decisionHint(c)" class="hint">{{ decisionHint(c) }}</p>
         <div v-if="blocked" class="pend">
           <Icon name="alert" /><span>Bạn là người đã ra quyết định trước. Một quản lý khác hoặc quản trị viên cần xem xét lại yêu cầu này.</span>
         </div>
@@ -230,19 +232,18 @@ defineExpose({
         <p v-else-if="err" class="err" role="alert">{{ err }}</p>
       </section>
 
-      <section class="cxd" aria-labelledby="cx-h">
-        <h3 id="cx-h">Chi tiết</h3>
+      <!-- Chi tiết đánh giá: gập lại mặc định, mở sẵn với yêu cầu xem xét lại vì quyết định trước nằm ở đây -->
+      <details class="cxd" :open="!!ap">
+        <summary><Icon name="chev" /><span>Chi tiết đánh giá</span></summary>
         <dl class="fx">
           <dt>Đánh giá tự động</dt>
           <dd class="fx-n">
             {{ aiText(c) }}
-            <details v-if="it.screening.score != null" class="wd">
-              <summary>Xem điểm chi tiết</summary>
-              <p>
-                {{ it.screening.label }} {{ score2(it.screening.score) }} · mô hình {{ it.screening.model_version }}.
-                {{ it.screening.model_version.startsWith('stand-in') ? 'Điểm mẫu, vì mô hình chưa được kết nối.' : '' }}
-              </p>
-            </details>
+            <span v-if="it.screening.score != null" class="hint" style="display: block; margin: 4px 0 0">
+              {{ it.screening.label }} {{ score2(it.screening.score) }} · mô hình {{ it.screening.model_version }}{{
+                /điểm mẫu|toy/.test(it.screening.model_version) ? ' (điểm mẫu, không phải mô hình thật)' : ''
+              }}
+            </span>
           </dd>
           <template v-if="ap">
             <dt>Quyết định trước</dt>
@@ -251,12 +252,8 @@ defineExpose({
               Quy tắc {{ ap.decision.rule }} · {{ dm(ap.decision.created_at) }}
             </dd>
           </template>
-          <dt>Người viết</dt>
-          <dd class="fx-n">{{ it.author.name }}{{ it.author.unit ? ` (${it.author.unit})` : '' }} · {{ history }}</dd>
-          <dt>Bước hiện tại</dt>
-          <dd class="fx-n">{{ ap ? 'Xem xét lại, quyết định cuối cùng' : 'Đang ẩn, chờ quyết định' }}</dd>
         </dl>
-      </section>
+      </details>
     </article>
   </div>
 </template>

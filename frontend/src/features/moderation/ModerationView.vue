@@ -68,6 +68,10 @@ const mark = (c: Case): [string, string] | null =>
         ? ['msg', 'Ngôn ngữ khác']
         : null
 
+// Xác nhận quyết định ngay trong trang, không dùng toast (DESIGN.md "Moderation Queue")
+const confirmation = ref('')
+const cap = (t: string) => t[0].toUpperCase() + t.slice(1)
+
 // Đã xử lý trong phiên này
 const done = ref<{ c: Case; label: string }[]>([])
 const reader = ref<InstanceType<typeof CaseView>>()
@@ -75,7 +79,7 @@ async function decided(c: Case, label: string) {
   done.value.unshift({ c, label })
   const i = list.value.findIndex((x) => x.id === c.id)
   const next = list.value[i + 1] ?? list.value[i - 1]
-  toast(`Đã ${label}. Đã gửi thông báo.`)
+  confirmation.value = `${cap(caseName(c))}: đã ${label}. Đã gửi thông báo cho người viết.`
   await queue.refetch()
   qc.invalidateQueries({ queryKey: ['feed'] })
   if (next && next.id !== c.id) router.replace(`/kiem-duyet/${next.id}`)
@@ -116,7 +120,7 @@ async function bulkApprove() {
 }
 async function bulkDone(n: number, label: string) {
   selected.value = new Set()
-  toast(`Đã ${label} ${n} mục. Đã gửi thông báo.`)
+  confirmation.value = `Đã ${label} ${n} mục. Đã gửi thông báo cho từng người viết.`
   await queue.refetch()
   if (caseId.value && !all.value.some((c) => c.id === caseId.value)) router.replace('/kiem-duyet')
 }
@@ -171,6 +175,9 @@ watch(caseId, async (id) => {
           <span class="wc">Nội dung mới được xử lý theo chính sách khi bộ lọc lỗi và sẽ tự động kiểm tra lại khi bộ lọc hoạt động trở lại. Bạn không cần duyệt từng mục.</span>
         </div>
       </div>
+      <div v-if="confirmation" class="und dn" role="status">
+        <Icon name="check" /><span>{{ confirmation }}</span>
+      </div>
       <div class="mod">
         <div class="mqw">
           <div class="qtb">
@@ -200,7 +207,7 @@ watch(caseId, async (id) => {
                 </PopoverPortal>
               </PopoverRoot>
             </div>
-            <button class="btn" :aria-pressed="selecting" @click="selecting = !selecting"><Icon name="check" />Chọn nhiều</button>
+            <button class="btn" :aria-pressed="selecting" @click="selecting = !selecting">Chọn nhiều</button>
             <button class="ib kb-b" aria-label="Phím tắt" @click="keysOpen = true"><Icon name="kbd" /></button>
             <p v-if="changed" class="qsum">
               <span
@@ -271,15 +278,15 @@ watch(caseId, async (id) => {
             <details v-if="done.length" class="qd">
               <summary><Icon name="chev" />Đã xử lý trong phiên này ({{ done.length }})</summary>
               <ul>
-                <li v-for="(x, i) in done" :key="i">{{ caseName(x.c)[0].toUpperCase() + caseName(x.c).slice(1) }}: {{ x.label }}</li>
+                <li v-for="(x, i) in done" :key="i">{{ cap(caseName(x.c)) }}: {{ x.label }}</li>
               </ul>
             </details>
             <div v-if="selecting" class="bb" role="region" aria-label="Thao tác hàng loạt">
               <b>{{ picked.length ? `Đã chọn ${picked.length} mục` : 'Đánh dấu các mục để xử lý cùng lúc' }}</b>
               <p v-if="bulkWarn" class="hint">Có mục có đoạn bị ẩn bạn chưa xem. Bấm “Vẫn cho phép” nếu bạn chắc chắn.</p>
               <div v-if="picked.length" class="bb-a">
-                <button class="btn" @click="bulkApprove"><Icon name="check" />{{ bulkWarn ? 'Vẫn cho phép' : 'Cho phép' }}</button>
-                <button class="btn" @click="bulk = true"><Icon name="x" />Từ chối…</button>
+                <button class="btn" @click="bulkApprove">{{ bulkWarn ? 'Vẫn cho phép' : 'Cho phép' }}</button>
+                <button class="btn" @click="bulk = true">Từ chối…</button>
                 <button class="btn ghost" @click="selected = new Set()">Bỏ chọn</button>
               </div>
             </div>

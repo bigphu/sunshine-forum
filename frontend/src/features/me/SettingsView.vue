@@ -61,7 +61,7 @@ async function logout() {
 
 <template>
   <PageShell title="Cài đặt">
-    <section class="card" aria-labelledby="sa-h">
+    <section class="psec" aria-labelledby="sa-h">
       <h2 id="sa-h">Tài khoản</h2>
       <dl class="fx">
         <dt>Họ và tên</dt>
@@ -78,7 +78,7 @@ async function logout() {
       <p class="hint">
         {{
           resident
-            ? 'Tên, căn hộ và email lấy từ danh sách cư dân đang thuê. Muốn sửa, hãy liên hệ văn phòng ban quản lý.'
+            ? 'Muốn sửa, hãy liên hệ văn phòng ban quản lý.'
             : 'Muốn sửa tên hoặc email, hãy nhờ quản trị viên.'
         }}
       </p>
@@ -105,16 +105,14 @@ async function logout() {
       </template>
     </section>
 
-    <section class="card set" aria-labelledby="sn-h">
+    <section class="psec" aria-labelledby="sn-h">
       <h2 id="sn-h">Cách nhận tin</h2>
-      <h3 class="st-h">Trên diễn đàn</h3>
-      <p>Mọi thông báo luôn có trong mục Thông báo. Tin nhắn về kiểm duyệt và yêu cầu xem xét lại luôn được gửi.</p>
-      <h3 class="st-h">Email</h3>
       <ul class="rights exl2">
+        <li><Icon name="check" /><span>Mọi thông báo có trong mục Thông báo.</span></li>
         <li><Icon name="check" /><span>Lời mời và liên kết đặt lại mật khẩu được gửi đến {{ me.email }}.</span></li>
         <li class="no"><Icon name="x" /><span>Các thông báo khác không gửi qua email.</span></li>
       </ul>
     </section>
-    <div class="row-a" style="margin: 0"><button class="btn" @click="logout"><Icon name="back" />Đăng xuất</button></div>
+    <div class="row-a" style="margin: 0"><button class="btn ghost" @click="logout">Đăng xuất</button></div>
   </PageShell>
 </template>

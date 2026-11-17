@@ -36,8 +36,7 @@ function meta(d: MyDecision) {
 <template>
   <PageShell title="Yêu cầu của tôi">
     <ReadOnlyCard />
-    <p style="margin: 0">Theo dõi nội dung đang chờ và yêu cầu xem xét lại của bạn. Bạn cũng sẽ nhận thông báo khi có kết quả.</p>
-    <section class="card">
+    <section class="psec">
       <h2>Đang chờ xem xét <span class="hc">({{ waiting.length }})</span></h2>
       <LoadError v-if="pending.isError.value" title="Không tải được nội dung đang chờ" @retry="pending.refetch()" />
       <ul v-else-if="waiting.length" class="rqs">
@@ -49,7 +48,7 @@ function meta(d: MyDecision) {
       </ul>
       <p v-else-if="!pending.isPending.value" class="hint">Không có nội dung nào đang chờ xem xét.</p>
     </section>
-    <section class="card">
+    <section class="psec">
       <h2>Nội dung bị xử lý <span class="hc">({{ handled.length }})</span></h2>
       <LoadError v-if="decisions.isError.value" title="Không tải được quyết định" @retry="decisions.refetch()" />
       <ul v-else-if="handled.length" class="rqs">

@@ -20,10 +20,22 @@ gen() {
 	else
 		head -c "$2" /dev/urandom | base64 | tr -d '\r\n' > "$file"
 	fi
-	chmod 600 "$file" 2>/dev/null || true
 	echo "created $file"
 }
 
 gen pg_password.txt 24
 gen privacy_enc_key.txt 32
 gen privacy_hmac_key.txt 32
+
+# Khoá Resend (thư ở production) do người cài điền; để trống thì worker không gửi được thư
+if [ ! -e secrets/resend_api_key.txt ]; then
+	: > secrets/resend_api_key.txt
+	echo "created secrets/resend_api_key.txt (empty: paste the Resend API key for production)"
+fi
+
+# Quyền: thư mục 700 nên người dùng khác trên máy không vào được; file 644 để container đọc
+# được. Image backend chạy bằng user không phải root (distroless nonroot, uid 65532) và compose
+# gắn file secret giữ nguyên quyền của host: file 600 thuộc user deploy làm migrate, app và
+# worker không đọc được secret và dừng ngay khi khởi động.
+chmod 700 secrets 2>/dev/null || true
+chmod 644 secrets/*.txt 2>/dev/null || true

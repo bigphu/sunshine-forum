@@ -73,7 +73,7 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
     <LoadError v-if="data.isError.value" title="Không tải được số liệu" @retry="data.refetch()" />
     <p v-else-if="!a" role="status">Đang tải…</p>
     <template v-else>
-      <section class="card" aria-labelledby="fg-h">
+      <section class="psec" aria-labelledby="fg-h">
         <h2 id="fg-h">Tổng quan {{ days }} ngày</h2>
         <dl class="tl t4">
           <div><dt>{{ num(a.flagged) }}</dt><dd>nội dung bị gắn cờ, trên {{ num(a.checked) }} nội dung được kiểm tra</dd></div>
@@ -81,7 +81,7 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
           <div>
             <dt>{{ overturned }}</dt>
             <dd>
-              lần AI bị lật: {{ a.overturned.held_wrong }} giữ nhầm, {{ a.overturned.missed }} bỏ sót{{
+              lần AI đánh giá sai: {{ a.overturned.held_wrong }} giữ nhầm, {{ a.overturned.missed }} bỏ sót{{
                 settings.data.value?.auto_delete_enabled || a.overturned.deleted_wrong ? `, ${a.overturned.deleted_wrong} xóa nhầm` : ''
               }}
             </dd>
@@ -90,7 +90,7 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
         </dl>
       </section>
 
-      <section class="card" aria-labelledby="ch1-h">
+      <section class="psec" aria-labelledby="ch1-h">
         <h2 id="ch1-h">Nội dung bị gắn cờ {{ days === 90 ? 'mỗi tuần' : 'mỗi ngày' }}</h2>
         <p class="hint" style="margin-top: 0">Gồm nội dung bị bộ lọc giữ lại hoặc khớp từ khóa chặn.</p>
         <div class="bc">
@@ -114,9 +114,8 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
         </details>
       </section>
 
-      <section class="card" aria-labelledby="ch2-h">
-        <h2 id="ch2-h">Tỉ lệ gắn cờ theo nhãn</h2>
-        <p class="hint" style="margin-top: 0">Phần trăm trên tổng nội dung được kiểm tra.</p>
+      <section class="psec" aria-labelledby="ch2-h">
+        <h2 id="ch2-h">Tỉ lệ gắn cờ theo nhãn, trên nội dung được kiểm tra</h2>
         <ul class="hb">
           <li v-for="[t, x, v] in labels" :key="t">
             <span class="hb-l"><b>{{ t }}</b><small>{{ x }}</small></span>
@@ -126,7 +125,7 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
         </ul>
       </section>
 
-      <section class="card" aria-labelledby="dq-h">
+      <section class="psec" aria-labelledby="dq-h">
         <h2 id="dq-h">Quyết định và yêu cầu xem xét lại</h2>
         <dl class="tl t4">
           <div><dt>{{ a.approved }}</dt><dd>cho phép đăng</dd></div>
@@ -136,7 +135,7 @@ const nameOf = (id: string) => accounts.data.value?.find((x) => x.id === id)
         </dl>
       </section>
 
-      <section class="card" aria-labelledby="aw-h">
+      <section class="psec" aria-labelledby="aw-h">
         <h2 id="aw-h">Hình phạt đang có hiệu lực</h2>
         <ul v-if="readOnly.data.value?.length" class="rqs">
           <li v-for="r in readOnly.data.value" :key="r.account_id">

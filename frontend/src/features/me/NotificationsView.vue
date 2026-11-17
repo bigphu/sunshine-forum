@@ -2,7 +2,6 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onMounted } from 'vue'
 import Avatar from '@/components/Avatar.vue'
-import Icon from '@/components/Icon.vue'
 import LoadError from '@/components/LoadError.vue'
 import PageShell from '@/components/PageShell.vue'
 import TimeAgo from '@/components/TimeAgo.vue'
@@ -33,7 +32,6 @@ const who = (n: Notification) => (FROM_STAFF.has(n.kind) ? '' : 'Cư dân')
 
 <template>
   <PageShell title="Thông báo">
-    <p v-if="auth.isStaff" style="margin: 0">Thông báo dành cho ban quản lý. Yêu cầu xem xét lại mới cũng nằm trong hàng chờ.</p>
     <LoadError v-if="inbox.isError.value" title="Không tải được thông báo" @retry="inbox.refetch()" />
     <p v-else-if="inbox.isPending.value" role="status">Đang tải…</p>
     <template v-else>
@@ -54,8 +52,8 @@ const who = (n: Notification) => (FROM_STAFF.has(n.kind) ? '' : 'Cư dân')
       <div v-if="!items.length" class="ep"><p>Chưa có thông báo nào.</p></div>
     </template>
     <div class="row-a">
-      <RouterLink v-if="auth.isStaff" class="btn" to="/kiem-duyet"><Icon name="inbox" />Mở hàng chờ</RouterLink>
-      <RouterLink v-else class="btn" to="/yeu-cau"><Icon name="inbox" />Yêu cầu của tôi</RouterLink>
+      <RouterLink v-if="auth.isStaff" class="btn ghost" to="/kiem-duyet">Mở hàng chờ</RouterLink>
+      <RouterLink v-else class="btn ghost" to="/yeu-cau">Yêu cầu của tôi</RouterLink>
     </div>
   </PageShell>
 </template>

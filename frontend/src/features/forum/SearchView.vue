@@ -33,8 +33,7 @@ function go() {
       <input id="q-p" v-model="input" type="search" placeholder="Tìm trong diễn đàn" />
       <button type="submit">Tìm</button>
     </form>
-    <p v-if="!q">Nhập từ khóa để tìm bài viết và thông báo.</p>
-    <p v-else-if="res.isPending.value" role="status">Đang tìm…</p>
+    <p v-if="q && res.isPending.value" role="status">Đang tìm…</p>
     <LoadError v-else-if="res.isError.value" title="Không tìm được lúc này" @retry="res.refetch()" />
     <template v-else-if="res.data.value">
       <p role="status">

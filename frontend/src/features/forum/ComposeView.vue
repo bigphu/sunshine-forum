@@ -12,7 +12,7 @@ import SaveFailure from '@/components/SaveFailure.vue'
 import { useDraftCheck } from '@/composables/useDraftCheck'
 import { api, ApiError, errorText, unwrap } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth'
-import { CHANNEL_ICON, charLen, MAX_CHARS, OUTAGE_HINT, PENDING_OUTAGE_TEXT } from '@/lib/forum'
+import { CHANNEL_ICON, CHANNEL_NOTE, charLen, MAX_CHARS, PENDING_OUTAGE_TEXT } from '@/lib/forum'
 import { useChannels, useScreeningStatus } from '@/lib/queries'
 import { toast } from '@/lib/toast'
 
@@ -75,6 +75,8 @@ async function loadPost() {
 const choices = computed(() => (channels.value ?? []).filter((c) => (official ? c.official_only : !c.official_only)))
 const channel = computed(() => channels.value?.find((c) => c.slug === slug.value))
 const channelId = computed(() => channel.value?.id)
+// Lưu ý của kênh đang chọn, hiện ngay khi viết (thay vì chỉ ở cột phải của trang kênh)
+const note = computed(() => (official ? null : CHANNEL_NOTE[slug.value]))
 const { warning, reset } = useDraftCheck([title, body], channelId)
 
 const titleErr = ref('')
@@ -130,7 +132,6 @@ function cancel() {
         <div v-if="status && !status.model_online" class="pend" role="status" style="margin: 0">
           <Icon name="clock" /><span>{{ PENDING_OUTAGE_TEXT }}</span>
         </div>
-        <p v-if="!editId && !official" class="hint" style="margin: 0">Bản nháp được giữ lại nếu bạn rời trang này.</p>
         <form class="card comp" novalidate @submit.prevent="submit">
           <div v-if="!editId && choices.length > 1" class="pick" role="group" aria-label="Chọn kênh đăng">
             <span>Đăng vào</span>
@@ -139,6 +140,9 @@ function cancel() {
             </button>
           </div>
           <p v-else class="hint" style="margin-top: 0">Kênh: <b>{{ editChannel || channel?.name }}</b></p>
+          <p v-if="note" class="hint cnote">
+            {{ note[0] }} <RouterLink v-if="note[1]" class="u" :to="`/quy-tac/${note[1]}`">Xem Quy tắc {{ note[1] }}</RouterLink>
+          </p>
           <label class="lb" for="n-t">Tiêu đề</label>
           <input
             id="n-t"
@@ -164,10 +168,7 @@ function cancel() {
           />
           <p v-if="bodyErr" class="err" role="alert">{{ bodyErr }}</p>
           <CharLimit id="n-lim" :value="body" />
-          <p id="n-h" class="hint">
-            {{ status && !status.model_online ? OUTAGE_HINT : editId ? 'Bài đã sửa được kiểm tra tự động lại. ' : 'Mọi bài viết đều được kiểm tra tự động. ' }}Đừng
-            chia sẻ thông tin riêng tư.
-          </p>
+          <p v-if="!editId && !official" id="n-h" class="hint">Bản nháp được giữ trên thiết bị này.</p>
           <div id="w-n"><DraftWarning :warning="warning" @fix="bEl?.focus()" /></div>
           <SaveFailure v-if="failure" :message="failure.message" :save="!!editId" :offline="failure.status === 0" @retry="submit" />
           <div class="fm-e">

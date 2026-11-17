@@ -67,7 +67,6 @@ const name = computed(() => c.value.author?.name ?? '')
             label-hidden
             submit-label="Lưu"
             cancel-label="Hủy"
-            hint="Bình luận đã sửa được kiểm tra tự động lại."
             @cancel="editing = false"
             @done="(res) => ((editing = false), emit('changed', res))"
           />

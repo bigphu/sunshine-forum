@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Vue.js frontend and Python model service, with PostgreSQL. The backend isn't tied to a language: whoever builds it can use TypeScript, JavaScript, Go, or another stack that provides the capabilities listed in `SYSTEM_DESIGN.md`. It deploys at `sunshine-forum.bigphu.io.vn` on the VPS shared with StoreIt, and the model service may run on a different machine. Details are in `SYSTEM_DESIGN.md`, a draft awaiting review. The first toxicity model is a linear SVM.
+Vue.js frontend and Python model service, with PostgreSQL. The backend isn't tied to a language: whoever builds it can use TypeScript, JavaScript, Go, or another stack that provides the capabilities listed in `docs/specs/SYSTEM_DESIGN.md`. It deploys at `sunshine-forum.bigphu.io.vn` on the VPS shared with StoreIt, and the model service may run on a different machine. Details are in `docs/specs/SYSTEM_DESIGN.md`, a draft awaiting review. The first toxicity model is a linear SVM.
 
 ## Users
 
@@ -75,7 +75,7 @@ A forum limited to verified tenants of one building, where every post is checked
 - Adjustable thresholds for auto-publish, quarantine, and auto-delete, plus keyword blocklists, with no deploy or restart (US-6.1, FR-5.1). Auto-delete is off by default, and an Admin can turn it on once the model has been tested on building content.
 - Per-channel thresholds (US-6.2, FR-5.2). On General Announcements these apply to resident comments as well as official posts.
 - Append-only audit trail of manual moderator actions, tracking overturned AI decisions. It stores only the action, moderator, AI score, model version, rule, outcome, and time, with a pseudonymous user ID. It holds no post text or resident personal data, and no one can edit it, including Admins (US-6.4, FR-5.3).
-- Minimal retraining export (US-6.4): no separate long-term store. An Admin exports finalized corrections for a training or evaluation run, and the export is deleted before the originals reach the 90-day purge, so NFR-3.3 is unchanged. Details are in `SYSTEM_DESIGN.md`.
+- Minimal retraining export (US-6.4): no separate long-term store. An Admin exports finalized corrections for a training or evaluation run, and the export is deleted before the originals reach the 90-day purge, so NFR-3.3 is unchanged. Details are in `docs/specs/SYSTEM_DESIGN.md`.
 - Analytics on flagged volume, AI accuracy, flag rates, and active warnings (US-6.3, FR-5.4).
 
 **Non-functional constraints**
@@ -94,7 +94,7 @@ A forum limited to verified tenants of one building, where every post is checked
 
 **Terminology:** "Pending review" is the quarantine state. "Re-evaluation Request" is the appeal. "Quarantine" means hidden from the public feed awaiting a manager. "Permanently rejected" means rejected after an appeal has been decided.
 
-**Where this record refines the specification (main points; the full wording is in `SPEC_CHANGES.md`)**
+**Where this record refines the specification (main points; the full wording is in `docs/specs/SPEC_CHANGES.md`)**
 - **US-3.2:** "never reaches the public feed" applies only while the filter is running or the system has failed closed.
 - **FR-1.3, US-1.3:** read-only timeouts are the only automatic penalty; shadow bans are dropped.
 - **FR-2.3:** adds General Discussion and uses Maintenance rather than the scope's Services.
@@ -108,9 +108,9 @@ A forum limited to verified tenants of one building, where every post is checked
 - **NFR-3.3:** the 90-day purge begins with a soft-delete stage, and the audit log holds no content.
 
 **Open decisions**
-- **Toxicity model:** the Vietnamese model is not trained yet, and it will use ViHSD's labels. The first model is a linear SVM, which must pass an accuracy test before launch. The pass mark will be discussed later. It must also meet the 200 ms limit in NFR-1.2. The open questions about the model are in `SYSTEM_DESIGN.md`.
-- **System design:** `SYSTEM_DESIGN.md` is awaiting review, including the choice of backend stack.
-- **Removing published content:** a manager removing published content isn't in the original specification. It's proposed in `SPEC_CHANGES.md` and shown in the prototype and Figma, and it needs the owner's confirmation.
+- **Toxicity model:** the Vietnamese model is not trained yet, and it will use ViHSD's labels. The first model is a linear SVM, which must pass an accuracy test before launch. The pass mark will be discussed later. It must also meet the 200 ms limit in NFR-1.2. The open questions about the model are in `docs/specs/SYSTEM_DESIGN.md`.
+- **System design:** `docs/specs/SYSTEM_DESIGN.md` is awaiting review, including the choice of backend stack.
+- **Removing published content:** a manager removing published content isn't in the original specification. It's proposed in `docs/specs/SPEC_CHANGES.md` and shown in the prototype and Figma, and it needs the owner's confirmation.
 
 ## Brand Commitments
 

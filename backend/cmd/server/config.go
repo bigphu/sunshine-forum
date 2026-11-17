@@ -9,6 +9,7 @@ import (
 	"sunshine/internal/identity"
 	"sunshine/internal/notifications"
 	"sunshine/internal/privacy"
+	"sunshine/internal/screening"
 )
 
 // serverConfig chỉ liệt kê khối cấu hình binary này dùng. Tên biến env, mặc định và
@@ -19,6 +20,7 @@ type serverConfig struct {
 	DB            database.Config      // DB_URL, PG*
 	Privacy       privacy.Config       // PRIVACY_*
 	Identity      identity.Config      // IDENTITY_*, ADMIN_*
+	Screening     screening.Config     // SCREENING_*
 	Content       content.Config       // CONTENT_*
 	Notifications notifications.Config // NOTIFICATIONS_*
 }

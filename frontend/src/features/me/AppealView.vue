@@ -58,7 +58,7 @@ const title = computed(() => (!status.value ? 'Yêu cầu xem xét lại' : stat
   <PageShell :title="title" :back="['/yeu-cau', 'Yêu cầu của tôi']">
     <p v-if="list.isPending.value" role="status">Đang tải…</p>
     <LoadError v-else-if="list.isError.value" title="Không tải được quyết định" @retry="list.refetch()" />
-    <section v-else-if="!d" class="card">
+    <section v-else-if="!d" class="psec">
       <p>Không tìm thấy quyết định này.</p>
       <div class="row-a"><RouterLink class="btn" to="/yeu-cau">Xem yêu cầu của tôi</RouterLink></div>
     </section>
@@ -75,7 +75,7 @@ const title = computed(() => (!status.value ? 'Yêu cầu xem xét lại' : stat
             </p>
           </div>
         </section>
-        <section class="card">
+        <section class="psec">
           <ol aria-label="Tiến trình">
             <li class="sp done">
               <span class="bl"><Icon name="check" /></span>
@@ -110,7 +110,7 @@ const title = computed(() => (!status.value ? 'Yêu cầu xem xét lại' : stat
         </section>
       </template>
 
-      <section class="card" aria-labelledby="dh">
+      <section class="psec" aria-labelledby="dh">
         <h2 id="dh">{{ decisionTitle(d) }}</h2>
         <q v-if="d.body" class="q">{{ d.body }}</q>
         <p v-else class="hint">Nội dung đã được xóa khỏi hệ thống sau thời hạn lưu.</p>
@@ -129,13 +129,13 @@ const title = computed(() => (!status.value ? 'Yêu cầu xem xét lại' : stat
           </template>
         </dl>
       </section>
-      <section v-if="d.appeal" class="card">
+      <section v-if="d.appeal" class="psec">
         <h2>Lý do của bạn</h2>
         <p>{{ d.appeal.reason }}</p>
       </section>
 
       <template v-if="!d.appeal">
-        <section v-if="!d.can_appeal" class="card"><p>Đã quá hạn yêu cầu xem xét lại cho nội dung này.</p></section>
+        <section v-if="!d.can_appeal" class="psec"><p>Đã quá hạn yêu cầu xem xét lại cho nội dung này.</p></section>
         <section v-else-if="confirm" class="card cf" aria-labelledby="cfh">
           <h2 id="cfh" tabindex="-1">Kiểm tra lại trước khi gửi</h2>
           <p>Bạn chỉ có một lần yêu cầu cho nội dung này. Sau khi gửi, bạn không thể sửa hoặc gửi thêm.</p>
@@ -182,8 +182,8 @@ const title = computed(() => (!status.value ? 'Yêu cầu xem xét lại' : stat
         </form>
       </template>
       <div v-if="d.appeal" class="row-a">
-        <RouterLink class="btn" to="/yeu-cau">Xem yêu cầu của tôi</RouterLink>
-        <RouterLink class="btn" to="/">Về bảng tin</RouterLink>
+        <RouterLink class="btn ghost" to="/yeu-cau">Xem yêu cầu của tôi</RouterLink>
+        <RouterLink class="btn ghost" to="/">Về bảng tin</RouterLink>
       </div>
     </template>
   </PageShell>

@@ -11,7 +11,7 @@
         "--bind",
         "127.0.0.1",
         "--directory",
-        "prototype"
+        "docs/prototype"
       ],
       "port": 5510,
       "url": "http://localhost:5510"

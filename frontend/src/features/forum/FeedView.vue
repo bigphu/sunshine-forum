@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useInfiniteQuery } from '@tanstack/vue-query'
-import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
@@ -34,27 +33,9 @@ const feed = useInfiniteQuery({
   getNextPageParam: (last) => last.next_cursor,
 })
 const pinned = computed(() => feed.data.value?.pages[0]?.pinned ?? [])
-const items = computed(() => feed.data.value?.pages.flatMap((p) => p.items) ?? [])
-
-// Sắp xếp và lọc trên những bài đã tải (prototype: Mới nhất / Sôi nổi, bộ lọc)
-type Sort = 'new' | 'busy'
-type Filter = 'all' | 'off' | 'none'
-const sort = ref<Sort>('new')
-const filter = ref<Filter>('all')
-const menu = ref(false)
-const FL: Record<Filter, string> = { all: 'Tất cả bài viết', off: 'Ban quản lý đã trả lời', none: 'Chưa có bình luận' }
-const filtered = computed(() => filter.value !== 'all' && !official.value)
-const list = computed(() => {
-  let l = items.value
-  if (filter.value === 'off') l = l.filter((p) => p.official_replied)
-  if (filter.value === 'none') l = l.filter((p) => !p.comment_count)
-  if (sort.value === 'busy') l = [...l].sort((a, b) => b.comment_count - a.comment_count)
-  return l
-})
-function setFilter(f: Filter) {
-  filter.value = f
-  menu.value = false
-}
+// Mới nhất trước, như server trả về. Bản đầu không có sắp xếp hay bộ lọc: chúng không có
+// trong spec, và chỉ áp được lên những bài đã tải nên dễ gây hiểu nhầm.
+const list = computed(() => feed.data.value?.pages.flatMap((p) => p.items) ?? [])
 
 // Thẻ chào mừng cho cư dân, ẩn sau khi bấm "Đã hiểu"
 const welcome = ref(false)
@@ -99,12 +80,12 @@ function compose() {
             <li><Icon name="check" /><span><b>Yêu cầu xem xét lại.</b> Một người thật sẽ đọc lại và quyết định.</span></li>
           </ul>
           <div class="row-a">
-            <RouterLink class="btn" to="/quy-tac">Xem bảy quy tắc</RouterLink>
+            <RouterLink class="btn ghost" to="/quy-tac">Xem bảy quy tắc</RouterLink>
             <button class="btn pri" @click="dismissWelcome">Đã hiểu</button>
           </div>
         </section>
 
-        <template v-if="!official && pinned.length && !filtered">
+        <template v-if="!official && pinned.length">
           <h2 class="sr">Thông báo được ghim</h2>
           <ul class="prs">
             <li v-for="p in pinned" :key="p.id">
@@ -123,36 +104,7 @@ function compose() {
               : 'Chỉ ban quản lý đăng bài tại đây. Bạn có thể bình luận trong từng thông báo.'
           }}
         </p>
-        <template v-else>
-          <div class="hdg">
-            <h2>Bài viết</h2>
-            <div class="tools">
-              <div class="seg" role="group" aria-label="Sắp xếp">
-                <button :aria-pressed="sort === 'new'" @click="sort = 'new'">Mới nhất</button>
-                <button :aria-pressed="sort === 'busy'" @click="sort = 'busy'">Sôi nổi</button>
-              </div>
-              <div class="fw">
-                <PopoverRoot v-model:open="menu">
-                  <PopoverTrigger class="btn" :class="{ on: filtered }" :aria-label="`Lọc bài viết${filtered ? `, đang lọc: ${FL[filter]}` : ''}`">
-                    <Icon name="filter" />Lọc<span v-if="filtered" class="cnt" aria-hidden="true">1</span>
-                  </PopoverTrigger>
-                  <PopoverPortal>
-                    <PopoverContent class="fmenu" role="group" aria-label="Lọc bài viết" align="end" :side-offset="8">
-                      <p>Hiển thị</p>
-                      <button v-for="(t, id) in FL" :key="id" :aria-pressed="filter === id" @click="setFilter(id)">
-                        <Icon v-if="filter === id" name="check" /><span v-else class="ck" />{{ t }}
-                      </button>
-                    </PopoverContent>
-                  </PopoverPortal>
-                </PopoverRoot>
-              </div>
-            </div>
-          </div>
-          <div v-if="filtered" class="flt">
-            <span>Đang lọc: <b>{{ FL[filter] }}</b></span>
-            <button class="btn ghost" @click="setFilter('all')">Xóa lọc</button>
-          </div>
-        </template>
+        <div v-else class="hdg"><h2>Bài viết mới nhất</h2></div>
 
         <template v-if="official && pinned.length">
           <h2 class="sr">Thông báo được ghim</h2>
@@ -184,9 +136,11 @@ function compose() {
             </button>
           </div>
         </template>
-        <div v-else-if="!(pinned.length && !filtered)" class="ep">
-          <p>{{ filtered ? 'Không có bài viết nào khớp với bộ lọc này.' : 'Chưa có bài viết nào. Hãy là người mở lời đầu tiên.' }}</p>
-          <div v-if="filtered" class="row-a"><button class="btn" @click="setFilter('all')">Xem tất cả bài viết</button></div>
+        <div v-else-if="!pinned.length" class="ep">
+          <p>Chưa có bài viết nào. Hãy là người mở lời đầu tiên.</p>
+          <div v-if="!auth.readOnlyUntil && !(official && !auth.isStaff)" class="row-a" style="justify-content: center">
+            <button class="btn pri" @click="compose">{{ composeLabel }}</button>
+          </div>
         </div>
       </div>
       <SidePanel :slug="slug" :compose-label="composeLabel" @compose="compose" />

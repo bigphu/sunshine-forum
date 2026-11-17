@@ -10,3 +10,17 @@ frontend/node_modules/
 frontend/dist/
 *.tsbuildinfo
 .sqlc.tmp.yml
+backend/*.exe
+
+# Công cụ thiết kế và trợ lý của từng người (giữ trên máy, không đưa vào repo).
+# .claude/launch.json (cấu hình xem trước khi dev) vẫn được theo dõi.
+.impeccable/
+.claude/skills/
+.claude/agents/
+.claude/settings.local.json
+
+# Hệ điều hành, editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

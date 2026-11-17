@@ -28,12 +28,12 @@ GOLANGCI_VERSION    := v2.14.0
 
 .DEFAULT_GOAL := help
 .PHONY: help migrate migrate-new seed generate generate-check sqlc sqlc-vet sqlc-compile \
-        run-api run-worker bin test test-db fmt fmt-check vet lint tidy check
+        run-api run-worker run-mockmodel bin test test-db fmt fmt-check vet lint tidy check
 
 help:
 	@echo Migrations  : migrate migrate-new name=... seed
 	@echo Codegen     : generate generate-check sqlc sqlc-vet sqlc-compile
-	@echo Go          : run-api run-worker bin test test-db fmt fmt-check vet lint tidy check
+	@echo Go          : run-api run-worker run-mockmodel bin test test-db fmt fmt-check vet lint tidy check
 	@echo Docker, DB  : make -C .. help
 
 # --- Migrations ---
@@ -77,6 +77,10 @@ run-api:
 
 run-worker:
 	go run ./cmd/worker
+
+# Mô hình giả cho SCREENING_MODEL_URL=http://127.0.0.1:8093 (điểm mẫu, hợp đồng thật)
+run-mockmodel:
+	MOCK_MODEL_ADDR=127.0.0.1:8093 go run ./cmd/mockmodel
 
 # Build server, worker, migrate, seed vào bin/
 bin:

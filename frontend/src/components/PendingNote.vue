@@ -10,7 +10,7 @@ defineProps<{ link?: boolean; text?: string }>()
   <div class="pend">
     <Icon name="clock" />
     <span
-      >{{ text ?? PENDING_TEXT + ' Bạn sẽ nhận được thông báo khi có quyết định.' }}
+      >{{ text ?? PENDING_TEXT }}
       <RouterLink v-if="link" class="u" to="/yeu-cau">Xem trong Yêu cầu của tôi</RouterLink></span
     >
   </div>

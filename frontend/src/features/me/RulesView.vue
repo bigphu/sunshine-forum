@@ -52,7 +52,7 @@ const HOW: [string, string][] = [
 
 <template>
   <PageShell title="Quy tắc cộng đồng">
-    <section class="card">
+    <section class="psec">
       <p>Diễn đàn này dành cho cư dân và ban quản lý Sunshine Apartment. Hãy trao đổi với nhau như khi gặp hàng xóm ở sảnh chung cư.</p>
       <h2 class="rt-h">Quyền của bạn</h2>
       <ul class="rights">
@@ -60,7 +60,7 @@ const HOW: [string, string][] = [
       </ul>
     </section>
     <LoadError v-if="rules.isError.value" title="Không tải được quy tắc" @retry="rules.refetch()" />
-    <section v-else class="card">
+    <section v-else class="psec">
       <h2>Bảy quy tắc</h2>
       <ol class="rl">
         <li v-for="r in rules.data.value" :id="`r-${r.number}`" :key="r.number" tabindex="-1" :class="{ hl: open === r.number }">
@@ -79,14 +79,14 @@ const HOW: [string, string][] = [
         </li>
       </ol>
     </section>
-    <section class="card">
+    <section class="psec">
       <h2>Cách diễn đàn hoạt động</h2>
       <details v-for="[t, b] in HOW" :key="t" class="acd">
         <summary><Icon name="chev" /><span>{{ t }}</span></summary>
         <div>{{ b }}</div>
       </details>
     </section>
-    <section class="card">
+    <section class="psec">
       <h2>Trường hợp khẩn cấp</h2>
       <p>Diễn đàn không phải là kênh khẩn cấp. Nếu có nguy hiểm, hãy gọi ngay:</p>
       <div class="tels">

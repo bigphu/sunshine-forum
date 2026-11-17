@@ -75,7 +75,7 @@ func run() error {
 	if err := identityMod.Bootstrap(ctx); err != nil {
 		return err
 	}
-	screeningMod, err := screening.New(screening.Deps{Pool: pool, Outbox: outbox})
+	screeningMod, err := screening.New(screening.Deps{Pool: pool, Outbox: outbox, Config: cfg.Screening})
 	if err != nil {
 		return err
 	}
