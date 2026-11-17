@@ -8,7 +8,7 @@ Production is one Ubuntu server running `compose.prod.yml`, next to StoreIt, beh
 ## First install
 
 ```sh
-git clone --recurse-submodules <repo> /opt/sunshine-forum && cd /opt/sunshine-forum
+git clone <repo> /opt/sunshine-forum && cd /opt/sunshine-forum   # then fetch model/ as below
 sh deploy/scripts/init.sh            # deploy/secrets/: Postgres password, privacy keys, empty Resend key file
 echo -n "<resend key>" > deploy/secrets/resend_api_key.txt
 cp .env.prod.example .env            # set APP_URL, MAIL_FROM, ADMIN_EMAIL, ADMIN_PASSWORD
@@ -46,6 +46,41 @@ sudo nginx -t && sudo systemctl reload nginx
 
 Until the site is enabled, browsers get StoreIt's certificate for this name and show a security warning. The site proxies to the `web` container
 on `127.0.0.1:8092`, with buffering turned off for the notification stream.
+
+## Access to the model repo
+
+`model/` is a private repository (a fork of the model team's private repo), so neither the forum's CI nor the
+server can fetch it anonymously. Both use read-only credentials.
+
+**CI.** Create a fine-grained personal access token (GitHub → Settings → Developer settings → Fine-grained
+tokens) with access to `bigphu/vietnamese-toxic-comment-detection` only, permission *Contents: Read-only*, and an
+expiry. Store it as the forum repo's `MODEL_REPO_TOKEN` secret:
+
+```sh
+gh secret set MODEL_REPO_TOKEN -R bigphu/sunshine-forum    # paste the token when asked
+```
+
+The `model / test` job uses it to check out the submodule. Renew it before it expires.
+
+**Server.** Use a read-only deploy key that only this server holds:
+
+```sh
+ssh-keygen -t ed25519 -f ~/.ssh/sunshine_model -N "" -C "sunshine-forum server"
+cat ~/.ssh/sunshine_model.pub      # add on GitHub: model repo → Settings → Deploy keys, read-only
+cat >> ~/.ssh/config <<'EOF'
+Host github-sunshine-model
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/sunshine_model
+  IdentitiesOnly yes
+EOF
+cd /opt/sunshine-forum
+git submodule init
+git config submodule.model.url git@github-sunshine-model:bigphu/vietnamese-toxic-comment-detection.git
+git submodule update
+```
+
+The URL override lives in this clone's `.git/config` only, so later `git submodule update` calls keep using the key.
 
 ## Each release
 

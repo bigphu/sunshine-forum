@@ -20,3 +20,4 @@ jobs:
     uses: ./.github/workflows/frontend.yml
   model:
     uses: ./.github/workflows/model.yml
+    secrets: inherit

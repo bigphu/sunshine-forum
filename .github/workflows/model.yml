@@ -1,5 +1,5 @@
-# CI của dịch vụ mô hình (submodule model/): test chấm điểm và hợp đồng HTTP bằng mô hình đồ
-# chơi, không cần dataset. Gọi từ ci.yml
+# CI của dịch vụ mô hình (submodule model/, repo riêng tư): test chấm điểm và hợp đồng HTTP
+# bằng mô hình đồ chơi, không cần dataset. Gọi từ ci.yml, cần secret MODEL_REPO_TOKEN
 name: model
 
 on:
@@ -17,9 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # model/ là repo riêng tư: GITHUB_TOKEN của forum không đọc được nó. MODEL_REPO_TOKEN là
+      # fine-grained token chỉ đọc nội dung repo mô hình (docs/guides/deploying.md)
       - uses: actions/checkout@v4
         with:
           submodules: true
+          token: ${{ secrets.MODEL_REPO_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
