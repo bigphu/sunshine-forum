@@ -17,12 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      # model/ là repo riêng tư: GITHUB_TOKEN của forum không đọc được nó. MODEL_REPO_TOKEN là
-      # fine-grained token chỉ đọc nội dung repo mô hình (docs/guides/deploying.md)
+      # Repo forum lấy bằng GITHUB_TOKEN như mọi job khác
       - uses: actions/checkout@v4
-        with:
-          submodules: true
-          token: ${{ secrets.MODEL_REPO_TOKEN }}
+
+      # model/ là repo riêng tư: GITHUB_TOKEN của forum không đọc được nó. MODEL_REPO_TOKEN là
+      # fine-grained token chỉ đọc nội dung repo mô hình (docs/guides/deploying.md). Token đó chỉ
+      # dùng được cho repo mô hình, nên chỉ đưa nó cho lệnh lấy submodule, không cho checkout.
+      - name: Fetch model submodule
+        working-directory: .
+        env:
+          MODEL_REPO_TOKEN: ${{ secrets.MODEL_REPO_TOKEN }}
+        run: |
+          test -n "$MODEL_REPO_TOKEN" || { echo "::error::MODEL_REPO_TOKEN secret is not set"; exit 1; }
+          git -c "url.https://git:${MODEL_REPO_TOKEN}@github.com/bigphu/vietnamese-toxic-comment-detection.insteadOf=https://github.com/bigphu/vietnamese-toxic-comment-detection"             submodule update --init model
 
       - uses: actions/setup-python@v5
         with:
