@@ -27,11 +27,39 @@ job scores it again when the model answers. Comments in Thông báo chung are he
 `scorer.Scorer` returns the contract agreed with the model team (SYSTEM_DESIGN §5): `model_version`,
 calibrated `clean` / `offensive` / `hate` scores and flagged sentences with character offsets.
 
-Only `scorer.StandIn` exists today. It recognises a few sample words and returns scores marked
-"stand-in-0.1 (điểm mẫu)". To connect the real service, add an HTTP scorer (POST the text, decode the
-response, map errors to an error return; `/health` can back `ModelOnline`) and pass it as
-`screening.Deps{Scorer: …}`. Nothing else changes. With a real scorer the outage simulation endpoint answers
-`409 /errors/stand-in-only`.
+Which scorer runs depends on `SCREENING_MODEL_URL` (`screening.Config`):
+
+| Setting | Scorer | Used for |
+|---|---|---|
+| empty | `scorer.StandIn`, in process. Scores marked "stand-in-0.1 (điểm mẫu)" | Host runs, tests, production until the model ships. Admins can simulate an outage from the filter page |
+| a URL | `scorer.HTTP`, calling the model service | The dev stack (pointing at the mock), and production once the real service is deployed |
+
+`scorer.HTTP` speaks the contract in [`scorer/model-service.yaml`](../internal/screening/scorer/model-service.yaml):
+`POST /score {"text"}` and `GET /health`. It keeps connections alive, honours the 200 ms deadline, and
+rejects anything outside the contract: a missing label, a score outside 0–1, an empty `model_version`, or
+sentence offsets outside the text. Every failure becomes an error, so the outage policy applies. `ModelOnline` and
+the status endpoint call `/health` and report the service's `model_version`.
+
+With a real scorer the outage simulation endpoint answers `409 /errors/stand-in-only`; simulate outages on the
+service instead.
+
+**Mock service (`cmd/mockmodel`).** Implements the same contract with StandIn's sample scores and version
+"mock-0.1 (điểm mẫu)". The dev stack runs it as the `model` service, and `make run-mockmodel` runs it on the host at
+`127.0.0.1:8093`. Its test runs it against `scorer.HTTP`, so the mock and the client cannot drift apart. To simulate
+trouble without stopping it:
+
+```sh
+curl -X PUT localhost:8093/mock/state -d '{"offline":true}'   # /score and /health answer 503
+curl -X PUT localhost:8093/mock/state -d '{"delay_ms":300}'   # slower than the 200 ms deadline
+curl -X PUT localhost:8093/mock/state -d '{}'                 # back to normal
+```
+
+Held content is rescanned by the worker within 15 seconds of the service answering again.
+
+**Real service.** The FastAPI service lives in the model repo (`vietnamese-toxic-comment-detection`:
+`service/app.py`, `Dockerfile`). It scores sentence by sentence with the calibrated SVM and passes the same contract
+checks. Without the trained model, `python src/toy.py` there builds a toy model to run it locally. To use it in the dev
+stack, run its image and set `SCREENING_MODEL_URL` to its address.
 
 ## Settings without a restart (FR-5.1)
 

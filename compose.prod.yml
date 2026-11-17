@@ -12,6 +12,8 @@ x-go-env: &go-env
   PRIVACY_HMAC_KEY_FILE: /run/secrets/privacy_hmac_key
   IDENTITY_APP_URL: ${APP_URL:-https://sunshine-forum.bigphu.io.vn}
   IDENTITY_COOKIE_SECURE: "true"
+  # Dịch vụ mô hình thật khi đã giao (ví dụ http://model:8000). Trống: StandIn, điểm mẫu.
+  SCREENING_MODEL_URL: ${SCREENING_MODEL_URL:-}
   ADMIN_EMAIL: ${ADMIN_EMAIL:-}
   ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
   # Mạng Docker mà host nginx đi vào: để rate limit thấy đúng IP của cư dân

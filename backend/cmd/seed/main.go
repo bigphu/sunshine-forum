@@ -33,11 +33,12 @@ import (
 )
 
 type seedConfig struct {
-	Log      logger.Config
-	DB       database.Config
-	Privacy  privacy.Config
-	Identity identity.Config
-	Password string `env:"SEED_PASSWORD"`
+	Log       logger.Config
+	DB        database.Config
+	Privacy   privacy.Config
+	Identity  identity.Config
+	Screening screening.Config
+	Password  string `env:"SEED_PASSWORD"`
 }
 
 func main() {
@@ -88,7 +89,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	screeningMod, err := screening.New(screening.Deps{Pool: pool, Outbox: outbox})
+	screeningMod, err := screening.New(screening.Deps{Pool: pool, Outbox: outbox, Config: cfg.Screening})
 	if err != nil {
 		return err
 	}

@@ -11,8 +11,9 @@ See `README.md`.
   `DESIGN.md` is the authority for screens; the prototype's markup and CSS are reused as-is.
 - Build only what the first release specifies. Out of scope: Web Push, resident reporting, urgent notices, the
   10-second undo, the Rule 6 pre-send warning, rewrite-and-repost, dark mode, the text-size control, voting.
-- The AI model is not connected: `screening/scorer.StandIn` returns sample scores. Keep the `scorer.Scorer`
-  interface when the real client lands.
+- The trained model is not connected. `SCREENING_MODEL_URL` selects `scorer.HTTP` (contract:
+  `backend/internal/screening/scorer/model-service.yaml`); the dev stack points it at the mock (`cmd/mockmodel`).
+  Empty means the in-process `scorer.StandIn`. Change the contract file, the client and the mock together.
 
 ## Backend
 

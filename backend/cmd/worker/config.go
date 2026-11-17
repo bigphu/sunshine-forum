@@ -10,6 +10,7 @@ import (
 	"sunshine/internal/identity"
 	"sunshine/internal/notifications"
 	"sunshine/internal/privacy"
+	"sunshine/internal/screening"
 )
 
 type workerConfig struct {
@@ -19,6 +20,7 @@ type workerConfig struct {
 	Mail          mail.Config          // MAIL_*
 	Privacy       privacy.Config       // PRIVACY_*
 	Identity      identity.Config      // IDENTITY_*
+	Screening     screening.Config     // SCREENING_*
 	Content       content.Config       // CONTENT_*
 	Notifications notifications.Config // NOTIFICATIONS_*
 	// Event của outbox được xoá sau ngần này ngày (NFR-3.3)

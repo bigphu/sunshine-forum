@@ -27,6 +27,7 @@ Each package owns its variables; the main ones:
 | `EVENTS_PURGE_AFTER_DAYS` | `90` | Delivered event payloads are deleted after this |
 | `MAIL_TRANSPORT` | | `smtp` (Mailpit in development) or `resend` (production) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | | First administrator, created only on an empty database |
+| `SCREENING_MODEL_URL` | empty | Model service base URL. Empty: the in-process stand-in. The dev stack sets it to the mock (`http://model:8000`) |
 
 Filter thresholds, the outage policy, the blocklist and the read-only rule are **not** environment variables:
 administrators change them in the app, they apply immediately (Postgres `NOTIFY` clears the screening cache in

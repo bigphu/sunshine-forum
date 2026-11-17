@@ -112,8 +112,25 @@ func (s *Service) Screen(ctx context.Context, text string, t contract.Target) (c
 
 func (s *Service) Worse(a, b contract.Result) contract.Result { return domain.Worse(a, b) }
 
+// healthChecker: scorer có điểm kiểm tra sức khoẻ riêng (scorer.HTTP gọi /health). Scorer
+// không có thì chấm thử một câu ngắn.
+type healthChecker interface {
+	Health(ctx context.Context) (string, error)
+}
+
+// probe trả về phiên bản mô hình nếu mô hình đang phục vụ được
+func (s *Service) probe(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, ModelTimeout)
+	defer cancel()
+	if h, ok := s.scorer.(healthChecker); ok {
+		return h.Health(ctx)
+	}
+	res, err := s.scorer.Score(ctx, "kiểm tra")
+	return res.ModelVersion, err
+}
+
 func (s *Service) ModelOnline(ctx context.Context) bool {
-	_, err := s.score(ctx, "kiểm tra")
+	_, err := s.probe(ctx)
 	return err == nil
 }
 
@@ -190,8 +207,8 @@ func (s *Service) Status(ctx context.Context) (Status, error) {
 	if _, err := auth.Require(ctx, domain.PermCheck); err != nil {
 		return Status{}, err
 	}
-	res, err := s.score(ctx, "kiểm tra")
-	return Status{ModelOnline: err == nil, ModelVersion: res.ModelVersion, StandIn: s.standIn}, nil
+	version, err := s.probe(ctx)
+	return Status{ModelOnline: err == nil, ModelVersion: version, StandIn: s.standIn}, nil
 }
 
 // --- Cài đặt của Admin ---

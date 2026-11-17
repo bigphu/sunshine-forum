@@ -1,0 +1,98 @@
+openapi: 3.0.3
+info:
+  title: Sunshine forum — model service contract
+  version: "1.0"
+  description: |
+    The HTTP contract between the forum backend (`scorer.HTTP`) and the toxicity model service,
+    as agreed with the model team on 2026-11-09 (SYSTEM_DESIGN §5). `cmd/mockmodel` implements it
+    with sample scores. The real service (FastAPI + scikit-learn) must match it.
+
+    Rules the backend relies on:
+    - The backend waits at most **200 ms** per call, network included. A timeout, a connection
+      error or any non-2xx status counts as an outage, and the forum applies its outage policy
+      (hold or publish, then rescan when the service is back).
+    - A response that breaks the schema below (missing label, score outside 0–1, offsets outside
+      the text, empty `model_version`) is treated the same way. The backend never guesses.
+    - Titles and bodies are scored in separate calls. Texts are at most 5,000 characters.
+    - Offsets count **characters (Unicode code points)** of the text exactly as sent, not bytes
+      and not the text after cleaning. Python `str` indices already count code points.
+    - `model_version` is stored with every screening result and in the audit log, so change it
+      whenever the weights or the calibration change.
+servers:
+  - url: http://model:8000
+paths:
+  /score:
+    post:
+      summary: Score one text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                  maxLength: 5000
+                  description: Raw text as the resident wrote it. The service does its own cleaning.
+            example: { text: "Mọi người ơi. Thằng đó đúng là súc vật!" }
+      responses:
+        "200":
+          description: Scores
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScoreResponse" }
+              example:
+                model_version: "svm-2026.11.1"
+                labels: { clean: 0.06, offensive: 0.13, hate: 0.81 }
+                sentences:
+                  - { start: 14, end: 39, top_label: hate, score: 0.81 }
+        "422": { description: Text missing or longer than 5,000 characters }
+        "503": { description: Model not loaded or unavailable }
+  /health:
+    get:
+      summary: Ready check
+      description: 200 only once the model is loaded and can score. Used for the admin status and to decide when to rescan held content.
+      responses:
+        "200":
+          description: Ready
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [model_version]
+                properties:
+                  status: { type: string, example: ok }
+                  model_version: { type: string, example: "svm-2026.11.1" }
+        "503": { description: Not ready }
+components:
+  schemas:
+    ScoreResponse:
+      type: object
+      required: [model_version, labels, sentences]
+      properties:
+        model_version:
+          type: string
+          minLength: 1
+        labels:
+          type: object
+          description: |
+            Calibrated probabilities, each 0–1, comparable with the admin thresholds. For the whole
+            text each label is the highest score of any sentence (FR-3.5).
+          required: [clean, offensive, hate]
+          properties:
+            clean: { type: number, minimum: 0, maximum: 1 }
+            offensive: { type: number, minimum: 0, maximum: 1 }
+            hate: { type: number, minimum: 0, maximum: 1 }
+        sentences:
+          type: array
+          description: Sentences whose top label is not clean, so the moderation screen can mask them. May be empty.
+          items:
+            type: object
+            required: [start, end, top_label, score]
+            properties:
+              start: { type: integer, minimum: 0, description: First character, inclusive }
+              end: { type: integer, description: Last character, exclusive; at most the text length }
+              top_label: { type: string, enum: [offensive, hate, clean] }
+              score: { type: number, minimum: 0, maximum: 1 }

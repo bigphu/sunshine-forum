@@ -15,6 +15,7 @@ This page is the short version for developers.
 | `app` | The HTTP API (`cmd/server`). Swagger UI at `/api/docs` in development |
 | `worker` | `cmd/worker`: delivers outbox events to subscribers, sends emails, rescans after outages, purges |
 | `web` | The Vue SPA. Vite in development; nginx in production, serving the SPA and proxying `/api` to `app` |
+| `model` | The model service. In development, the mock (`cmd/mockmodel`) with sample scores; in production, the trained SVM once it ships (until then the backend uses its in-process stand-in) |
 | `mailpit` | Development mail inbox |
 | `seed` | Demo data, behind the `tools` profile |
 
@@ -75,7 +76,8 @@ middleware are not used.
 5. **Appeal.** The writer appeals once within 30 days. A different moderator decides; accepting restores the
    content and removes the strike, through the same event path.
 
-If the scorer is down, the outage policy decides: *fail closed* (default) holds new content, *fail open* publishes
+The backend talks to the model service over HTTP with a 200 ms deadline; the contract is
+`backend/internal/screening/scorer/model-service.yaml`. If the scorer is down, the outage policy decides: *fail closed* (default) holds new content, *fail open* publishes
 what passes the blocklist. Either way the worker rescans held content every 15 seconds once the scorer is back.
 Comments in the management channel are always held during an outage.
 

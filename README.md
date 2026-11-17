@@ -25,9 +25,10 @@ reference for every screen.
 - **Privacy**: names, emails and units are encrypted at rest; the audit log uses pseudonyms; deactivated
   accounts and old event payloads are purged after 90 days.
 
-The AI model is **not connected yet**. A stand-in scorer behind `screening/scorer.Scorer` returns sample scores
-(model version `stand-in-0.1 (điểm mẫu)`) so every flow can be demonstrated. Plugging in the real model is a
-change inside the screening module only; see `backend/docs/screening.md`.
+The trained model is **not connected yet**. The backend calls a model service over HTTP
+(`SCREENING_MODEL_URL`, contract in `backend/internal/screening/scorer/model-service.yaml`). In development that
+service is a mock with sample scores (`mock-0.1 (điểm mẫu)`); without a URL the backend uses an in-process
+stand-in. Connecting the real model is a configuration change; see `backend/docs/screening.md`.
 
 ## Repository
 
@@ -70,5 +71,6 @@ make seed     # demo accounts and content (SEED_PASSWORD in .env)
 | http://localhost:5180 | Frontend (Vite, hot reload) |
 | http://localhost:8091/api/docs | API, Swagger UI for every module |
 | http://localhost:8026 | Mailpit (invitation and reset emails) |
+| http://localhost:8093 | Mock model service |
 
 Demo accounts and every other target are in [Getting started](docs/guides/getting-started.md).

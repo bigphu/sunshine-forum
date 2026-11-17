@@ -1,12 +1,13 @@
 // Package screening sàng lọc nội dung trước khi đăng: blocklist, kiểm tra ngôn ngữ, gọi
 // mô hình (tối đa 200 ms), ngưỡng theo kênh và chính sách khi mô hình gặp sự cố.
 //
-//	m := screening.New(screening.Deps{Pool: pool})
+//	m := screening.New(screening.Deps{Pool: pool, Outbox: outbox, Config: cfg.Screening})
 //	go m.Watch(ctx)            // cmd/server, cmd/worker: làm mới cache khi Admin đổi cài đặt
 //	err = m.Mount(r)           // cmd/server
 //	content.New(content.Deps{Screener: m.Screener(), ...})
 //
-// Mô hình thật chưa nối: Scorer mặc định là StandIn (điểm mẫu). Xem package scorer.
+// Mô hình: SCREENING_MODEL_URL trỏ tới dịch vụ mô hình (scorer.HTTP). Để trống thì dùng
+// StandIn (điểm mẫu, có nút giả lập sự cố cho Admin). Xem package scorer.
 package screening
 
 import (
@@ -25,10 +26,27 @@ import (
 	"sunshine/internal/screening/service"
 )
 
+// Config của screening, đọc bằng config.Load
+type Config struct {
+	// Địa chỉ gốc của dịch vụ mô hình, ví dụ http://model:8000. Trống: dùng StandIn.
+	ModelURL string `env:"SCREENING_MODEL_URL"`
+}
+
+func (c Config) Validate() error {
+	if c.ModelURL == "" {
+		return nil
+	}
+	if _, err := scorer.NewHTTP(c.ModelURL); err != nil {
+		return fmt.Errorf("screening: SCREENING_MODEL_URL: %w", err)
+	}
+	return nil
+}
+
 type Deps struct {
 	Pool   *pgxpool.Pool
 	Outbox *events.Outbox
-	// Scorer nil: dùng StandIn
+	Config Config
+	// Scorer đặt sẵn (cho test) thắng Config.ModelURL. Cả hai trống: dùng StandIn.
 	Scorer scorer.Scorer
 }
 
@@ -41,8 +59,19 @@ func New(d Deps) (*Module, error) {
 	if d.Pool == nil || d.Outbox == nil {
 		return nil, fmt.Errorf("screening: Pool and Outbox are required")
 	}
+	if err := d.Config.Validate(); err != nil {
+		return nil, err
+	}
 	repo := repository.New(d.Pool, d.Outbox)
-	sc, standIn := d.Scorer, d.Scorer == nil
+	sc := d.Scorer
+	if sc == nil && d.Config.ModelURL != "" {
+		h, err := scorer.NewHTTP(d.Config.ModelURL)
+		if err != nil {
+			return nil, err
+		}
+		sc = h
+	}
+	standIn := sc == nil
 	var svc *service.Service
 	if standIn {
 		stand := &scorer.StandIn{}

@@ -1,6 +1,7 @@
 # Dev stack của forum: make init (một lần), rồi make up / make dev.
 #   web (Vite, :5180) ──/api──► app (Go, :8091) ──► postgres (:5441)
 #   worker ──► postgres, mailpit (SMTP)
+#   app, worker ──► model (dịch vụ mô hình giả, cmd/mockmodel, :8093 trên host)
 # Stack riêng, mạng và cổng riêng, để chạy cạnh StoreIt trên cùng máy.
 name: sunshine-forum
 
@@ -16,6 +17,9 @@ x-go-env: &go-env
   ADMIN_EMAIL: ${ADMIN_EMAIL:-}
   ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
   LOG_FORMAT: pretty
+  # Dịch vụ mô hình (hợp đồng: backend/internal/screening/scorer/model-service.yaml). Dev dùng
+  # mô hình giả; đặt SCREENING_MODEL_URL= (rỗng) trong .env để quay về StandIn trong tiến trình.
+  SCREENING_MODEL_URL: ${SCREENING_MODEL_URL-http://model:8000}
 
 x-go-dev: &go-dev
   build:
@@ -68,6 +72,17 @@ services:
       migrate: { condition: service_completed_successfully }
     restart: "no"
     profiles: ["tools"]
+
+  # Mô hình giả: điểm mẫu theo đúng hợp đồng HTTP của dịch vụ thật. Giả lập sự cố:
+  #   curl -X PUT localhost:8093/mock/state -d '{"offline":true}'   (hoặc '{"delay_ms":300}')
+  model:
+    <<: *go-dev
+    command: ["go", "run", "./cmd/mockmodel"]
+    environment:
+      MOCK_MODEL_ADDR: ":8000"
+    ports:
+      - "127.0.0.1:${MODEL_PORT:-8093}:8000"
+    restart: unless-stopped
 
   app:
     <<: *go-dev
